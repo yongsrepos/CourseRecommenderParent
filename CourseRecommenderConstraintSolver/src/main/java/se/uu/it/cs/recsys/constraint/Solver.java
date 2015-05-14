@@ -103,9 +103,9 @@ public class Solver {
 
         postPeriodCard(store, pers);
         
-        if (store.consistency()) {
-            return search(store, pers);
-        }
+//        if (store.consistency()) {
+//            return search(store, pers);
+//        }
 
         postPeriodCredit(store, pers, interestedCourseIdSet);
 
@@ -158,6 +158,8 @@ public class Solver {
         for (int i = 0; i <= 5; i++) {
             p[i] = new SetVar(store, "Period_" + (i + 1), domains.get(i + 1));
         }
+        
+        
 
         return p;
     }
@@ -296,6 +298,8 @@ public class Solver {
                 MAX_PERIOD_CREDIT * TOTAL_PLAN_PERIODS);
 
         Sum sumConst = new Sum(creditsForEachPeriodByLevel, totalAdvancedCreditsVar);
+        
+        store.impose(sumConst);
 
         return sumConst.sum;
     }
@@ -320,6 +324,8 @@ public class Solver {
                 MAX_PERIOD_CREDIT * TOTAL_PLAN_PERIODS);
 
         Sum sumConst = new Sum(creditsForEachPeriod, totalCreditVar);
+        
+        store.impose(sumConst);
 
         return sumConst.sum;
     }
@@ -339,14 +345,16 @@ public class Solver {
         ArrayList<IntVar> credits = new ArrayList<>();
 
         for (CourseCredit credit : CourseCredit.values()) {
-            IntVar sum = getCreditsByCreditCategory(store, idSetVar,
+            IntVar sum = getPeriodCreditsByCreditCategory(store, idSetVar,
                     credit, interestedCourseIdSet);
             credits.add(sum);
         }
 
-        IntVar periodCreditVar = new IntVar(store, MIN_PERIOD_CREDIT, MAX_PERIOD_CREDIT);
+        IntVar creditVar = new IntVar(store, 0, MAX_PERIOD_CREDIT);
 
-        Sum sumConst = new Sum(credits, periodCreditVar);
+        Sum sumConst = new Sum(credits, creditVar);
+        
+        store.impose(sumConst);
 
         return sumConst.sum;
     }
@@ -356,12 +364,12 @@ public class Solver {
      * period.
      *
      * @param store
-     * @param idSetVar the set of candidate courses available in this period
-     * @param credit the credit level of a course, e.g {@link CourseCredit#FIVE}
+     * @param periodIdSetVar the set of candidate courses available in this period
+     * @param targetCredit the credit level of a course, e.g {@link CourseCredit#FIVE}
      * @return total credits from the courses of the input credit
      */
-    private IntVar getCreditsByCreditCategory(Store store, SetVar idSetVar,
-            CourseCredit credit, Set<Integer> interestedCourseIdSet) {
+    private IntVar getPeriodCreditsByCreditCategory(Store store, SetVar periodIdSetVar,
+            CourseCredit targetCredit, Set<Integer> interestedCourseIdSet) {
         /*
          * Get all courses at current period; gets the intersect with
          * eventual planned courses to select; multiply cardinality of the
@@ -370,26 +378,29 @@ public class Solver {
         Map<CourseCredit, SetDomain> creditAndDom = this.creditDomainBuilder
                 .getCreditAndIdConstaintDomainMappingFor(interestedCourseIdSet);
 
-        SetDomain domForCredit = creditAndDom.get(credit);
+        SetDomain domForTargetCredit = creditAndDom.get(targetCredit);
 
-        if (domForCredit == null) {
-            LOGGER.warn("No mapping domain for credit {}", credit.getCredit());
+        if (domForTargetCredit == null) {
+            LOGGER.warn("No mapping domain for credit {}", targetCredit.getCredit());
             return new IntVar(store, 0, 0);
         }
 
-        SetVar courseIdSetForCredit = new SetVar(store, domForCredit);
+        SetVar setVarForTargetCredit = new SetVar(store, domForTargetCredit);
 
-        SetVar intersectVar = new SetVar(store, idSetVar.dom());
+        SetVar intersectVar = new SetVar(store, periodIdSetVar.dom()); // init it 
 
-        AintersectBeqC intersectConst = new AintersectBeqC(idSetVar, courseIdSetForCredit,
+        AintersectBeqC intersectConst = new AintersectBeqC(periodIdSetVar, setVarForTargetCredit,
                 intersectVar);
+        store.impose(intersectConst);
 
         IntVar card = new IntVar(store, 0, MAX_COURSE_AMOUNT_PERIOD);
         CardAeqX cardConst = new CardAeqX(intersectConst.c, card);
+        store.impose(cardConst);
 
         IntVar creditSum = new IntVar(store, 0, MAX_PERIOD_CREDIT);
-        XmulCeqZ mul = new XmulCeqZ(cardConst.cardinality, credit.getCredit(),
+        XmulCeqZ mul = new XmulCeqZ(cardConst.cardinality, (int)targetCredit.getCredit(),
                 creditSum);
+        store.impose(mul);
 
         return mul.z;
     }
@@ -411,6 +422,7 @@ public class Solver {
         // intersect of current period and the course ids at the specified level
         AintersectBeqC interConst = new AintersectBeqC(periodVar, courseIdSetForLevel,
                 interSet);
+        store.impose(interConst);
 
         IntVar creditAtThisLevel = getCredits(store, interConst.c, interestedCourseIdSet);
 

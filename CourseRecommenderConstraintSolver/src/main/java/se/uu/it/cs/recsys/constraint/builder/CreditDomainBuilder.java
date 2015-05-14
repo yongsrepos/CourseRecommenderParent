@@ -34,31 +34,45 @@ package se.uu.it.cs.recsys.constraint.builder;
  * limitations under the License.
  * #L%
  */
-
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.jacop.set.core.SetDomain;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import se.uu.it.cs.recsys.api.type.CourseCredit;
 import se.uu.it.cs.recsys.persistence.entity.Course;
-import se.uu.it.cs.recsys.persistence.entity.SupportedCourseCredit;
 import se.uu.it.cs.recsys.persistence.repository.CourseRepository;
 
 /**
- *
+ * A domain builder for normalized credit. Since course credit can have float
+ * value, e.g 7.5f, the class will then normalize it to have credit (int) 7.5 *
+ * 10 instead. Hence, we can model the CSP with IntVar and int constraint.
  */
 @Component
 public class CreditDomainBuilder {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CreditDomainBuilder.class);
+
     @Autowired
     private CourseRepository courseRepository;
 
+    /**
+     *
+     * @param idSet
+     * @return the mapping between credit and the constraint set domain for the
+     * input courses ids from planned years
+     */
     public Map<CourseCredit, SetDomain> getCreditAndIdConstaintDomainMappingFor(
             Set<Integer> idSet) {
+        if (idSet == null || idSet.isEmpty()) {
+            LOGGER.warn("Does not make sense to put null or empty set, right?");
+            return Collections.EMPTY_MAP;
+        }
 
         Map<CourseCredit, SetDomain> creditAndDomain = new HashMap<>();
 
@@ -66,13 +80,18 @@ public class CreditDomainBuilder {
 
         levelAndIds.entrySet().stream().forEach((entry) -> {
             creditAndDomain.put(entry.getKey(),
-                    DomainBuilder.createSetDomain(entry.getValue()));
+                    DomainBuilder.createDomain(entry.getValue()));
         });
 
         return creditAndDomain;
     }
 
-    public Map<CourseCredit, SetDomain> getCreditAndIdConstaintDomain() {
+    /**
+     *
+     * @return the mapping between credit and the constraint set domain for all
+     * courses ids from planned years
+     */
+    public Map<CourseCredit, SetDomain> getCreditAndCourseIdConstaintDomain() {
         Map<CourseCredit, SetDomain> creditAndDomain = new HashMap<>();
 
         Map<CourseCredit, Set<Integer>> creditAndIds = getCreditAndIds();
@@ -80,59 +99,66 @@ public class CreditDomainBuilder {
         creditAndIds.entrySet().stream()
                 .forEach((entry) -> {
                     creditAndDomain.put(entry.getKey(),
-                            DomainBuilder.createSetDomain(entry.getValue()));
+                            DomainBuilder.createDomain(entry.getValue()));
                 });
 
         return creditAndDomain;
     }
 
+    /**
+     *
+     * @return the mapping between credit and all courses ids from planned years
+     */
     public Map<CourseCredit, Set<Integer>> getCreditAndIds() {
-        Map<CourseCredit, Set<Integer>> levelAndIds = new HashMap<>();
-
-        for (CourseCredit credit : CourseCredit.values()) {
-
-            SupportedCourseCredit supportedCourseCredit
-                    = new SupportedCourseCredit((double) credit.getCredit());
-
-            // in DB, course has 7.5 pts
-            if (credit.equals(CourseCredit.SEVEN)) {
-                supportedCourseCredit = new SupportedCourseCredit(7.5);
-            }
-
-            Set<Course> courseSet = this.courseRepository
-                    .findByCredit(supportedCourseCredit);
-
-            Set<Integer> idSet = courseSet.stream()
-                    .map(course -> course.getAutoGenId())
-                    .collect(Collectors.toSet());
-
-            levelAndIds.put(credit, idSet);
-        }
-
-        return levelAndIds;
-    }
-
-    public Map<CourseCredit, Set<Integer>> getCreditAndIdMappingFor(Set<Integer> idSet) {
         Map<CourseCredit, Set<Integer>> creditAndIds = new HashMap<>();
 
-        idSet.forEach(id -> {
-            Course course = this.courseRepository.findByAutoGenId(id);
+        this.courseRepository.findAll().forEach(course -> {
+            checkCourseCreditAndPutToMap(course, creditAndIds);
+        });
 
-            // takes credit 7.5 as 7.0
-            Integer creditIntValue = course.getCredit().getCredit().intValue();
-            CourseCredit credit = CourseCredit.ofValue(creditIntValue);
+        return creditAndIds;
+    }
 
-            if (creditAndIds.containsKey(credit)) {
-                creditAndIds.get(credit).add(course.getAutoGenId());
+    /**
+     *
+     * @param idSet the set of course ids
+     * @return mapping between course credit and course
+     */
+    public Map<CourseCredit, Set<Integer>> getCreditAndIdMappingFor(Set<Integer> idSet) {
+        if (idSet == null || idSet.isEmpty()) {
+            LOGGER.warn("Does not make sense to put null or empty set, right?");
+            return Collections.EMPTY_MAP;
+        }
+
+        Map<CourseCredit, Set<Integer>> creditAndIds = new HashMap<>();
+
+        this.courseRepository.findByAutoGenIds(idSet).forEach(course -> {
+            checkCourseCreditAndPutToMap(course, creditAndIds);
+        });
+
+        return creditAndIds;
+    }
+
+    /*
+     * Put course to the credit to course map if its credit is supported; otherwise log it as warning
+     */
+    private void checkCourseCreditAndPutToMap(Course course, Map<CourseCredit, Set<Integer>> creditAndIds) {
+        try {
+            CourseCredit courseCredit = CourseCredit.ofValue(course.getCredit().getCredit().floatValue());
+
+            if (creditAndIds.containsKey(courseCredit)) {
+                creditAndIds.get(courseCredit).add(course.getAutoGenId());
             } else {
                 Set<Integer> idSetWithSameCredit = new HashSet<>();
                 idSetWithSameCredit.add(course.getAutoGenId());
 
-                creditAndIds.put(credit, idSetWithSameCredit);
+                creditAndIds.put(courseCredit, idSetWithSameCredit);
             }
-        });
+        } catch (IllegalArgumentException e) {
+            LOGGER.warn("Course: {} id: {} has a unsupported course credit {}",
+                    course.getName(), course.getAutoGenId(), course.getCredit().getCredit(), e);
 
-        return creditAndIds;
+        }
     }
 
 }

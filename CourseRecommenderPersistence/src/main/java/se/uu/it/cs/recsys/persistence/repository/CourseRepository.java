@@ -40,6 +40,8 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     public Course findByCodeAndTaughtYearAndStartPeriod(@Param("code") String code, @Param("taughtYear") Short taughtYear, @Param("startPeriod") Short startPeriod);
 
     public Course findByAutoGenId(@Param("autoGenId") Integer autoGenId);
+    
+    public Set<Course> findByAutoGenIds(@Param("autoGenIds") Set<Integer> autoGenIds);
 
     public Set<Course> findByCode(@Param("code") String code);
 

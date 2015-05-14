@@ -1,4 +1,3 @@
-
 package se.uu.it.cs.recsys.api.type;
 
 /*
@@ -20,35 +19,44 @@ package se.uu.it.cs.recsys.api.type;
  * limitations under the License.
  * #L%
  */
-
-
 /**
  *
  * @author Yong Huang &lt;yong.e.huang@gmail.com&gt;
  */
 public enum CourseCredit {
 
-    FIVE(5), SEVEN(7), TEN(10), FIVETEEN(15), THIRTY(30);
+    FIVE(5.0f), SEVEN_POINT_FIVE(7.5f), TEN(10.0f), FIVETEEN(15.0f), THIRTY(30.0f);
 
-    private final int credit;
+    private final float credit;
 
-    private CourseCredit(int credit) {
+    private CourseCredit(float credit) {
         this.credit = credit;
     }
-    
-    public static CourseCredit ofValue(int value){
-        switch(value){
-            case 5: return FIVE;
-            case 7: return SEVEN;
-            case 10: return TEN;
-            case 15: return FIVETEEN;
-            case 30: return THIRTY;
-            default:
-                throw new IllegalArgumentException("Not supported value: "+ value);
+
+    /**
+     *
+     * @param value, the input float value
+     * @return matching instance or null;
+     * @throws IllegalArgumentException if the input is not supported
+     */
+    public static CourseCredit ofValue(float value) {
+
+        CourseCredit matching = null;
+
+        for (CourseCredit courseCredit : CourseCredit.values()) {
+            if (Float.compare(value, courseCredit.getCredit()) == 0) {
+                matching = courseCredit;
+            }
         }
+        
+        if(matching == null){
+            throw new IllegalArgumentException(value + " is not a valid course credit!");
+        }
+
+        return matching;
     }
 
-    public int getCredit() {
+    public float getCredit() {
         return this.credit;
     }
 

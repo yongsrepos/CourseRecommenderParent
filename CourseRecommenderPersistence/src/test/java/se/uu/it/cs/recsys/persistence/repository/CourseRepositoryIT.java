@@ -23,6 +23,8 @@ package se.uu.it.cs.recsys.persistence.repository;
 
 
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,5 +76,20 @@ public class CourseRepositoryIT {
         Set<Course> fiveCredits = this.courseRepository.findByCredit(new SupportedCourseCredit((double) CourseCredit.FIVE.getCredit()));
 
         Assert.assertTrue(!fiveCredits.isEmpty());
+    }
+
+    @Test
+    public void testFindByTaughtYearAndStartPeriod() {
+    }
+
+    @Test
+    public void testFindByAutoGenId() {
+    }
+
+    @Test
+    public void testFindByAutoGenIds() {
+        Set<Integer> ids = Stream.of(1,2,3,4,5).collect(Collectors.toSet());
+        
+        Assert.assertTrue(!this.courseRepository.findByAutoGenIds(ids).isEmpty());
     }
 }

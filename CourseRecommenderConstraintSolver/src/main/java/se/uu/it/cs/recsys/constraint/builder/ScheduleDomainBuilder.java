@@ -65,20 +65,21 @@ public class ScheduleDomainBuilder {
      */
     public Map<Integer, SetDomain> createScheduleSetDomainsFor(Set<Integer> interestedCourseIdSet) {
 
-        Map<Integer, SetDomain> periodIdAndScheduleSetDomain = new HashMap<>();
+        Map<Integer, SetDomain> periodIdAndFilteredCourseIdSetDomain = new HashMap<>();
 
         Map<Integer, Set<Integer>> periodIdAndCourseIds = getStartPeriodAndIdSetMapping();
 
         periodIdAndCourseIds.entrySet().stream().forEach(entry -> {
-            Set<Integer> idIntersection = entry.getValue();
-            idIntersection.retainAll(interestedCourseIdSet);
+            Set<Integer> planedCourseIdSet = entry.getValue();
+            
+            planedCourseIdSet.retainAll(interestedCourseIdSet);//get intersection
 
-            SetDomain domain = DomainBuilder.createSetDomain(idIntersection);
+            SetDomain domain = DomainBuilder.createDomain(planedCourseIdSet);
 
-            periodIdAndScheduleSetDomain.put(entry.getKey(), domain);
+            periodIdAndFilteredCourseIdSetDomain.put(entry.getKey(), domain);
         });
 
-        return periodIdAndScheduleSetDomain;
+        return periodIdAndFilteredCourseIdSetDomain;
     }
 
     /**
@@ -95,7 +96,7 @@ public class ScheduleDomainBuilder {
 
         periodIdAndCourseIds.entrySet().stream().forEach(
                 entry -> {
-                    SetDomain domain = DomainBuilder.createSetDomain(entry.getValue());
+                    SetDomain domain = DomainBuilder.createDomain(entry.getValue());
 
                     periodIdAndScheduleSetDomain.put(entry.getKey(), domain);
                 }

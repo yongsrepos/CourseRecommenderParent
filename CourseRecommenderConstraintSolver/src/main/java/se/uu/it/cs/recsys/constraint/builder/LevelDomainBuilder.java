@@ -34,18 +34,18 @@ package se.uu.it.cs.recsys.constraint.builder;
  * limitations under the License.
  * #L%
  */
-
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.jacop.set.core.SetDomain;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import se.uu.it.cs.recsys.api.type.CourseLevel;
 import se.uu.it.cs.recsys.persistence.entity.Course;
-import se.uu.it.cs.recsys.persistence.entity.SupportedCourseLevel;
 import se.uu.it.cs.recsys.persistence.repository.CourseRepository;
 
 /**
@@ -53,6 +53,8 @@ import se.uu.it.cs.recsys.persistence.repository.CourseRepository;
  */
 @Component
 public class LevelDomainBuilder {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(LevelDomainBuilder.class);
 
     @Autowired
     private CourseRepository courseRepository;
@@ -66,7 +68,7 @@ public class LevelDomainBuilder {
 
         levelAndIds.entrySet().stream().forEach((entry) -> {
             levelAndDomain.put(entry.getKey(),
-                    DomainBuilder.createSetDomain(entry.getValue()));
+                    DomainBuilder.createDomain(entry.getValue()));
         });
 
         return levelAndDomain;
@@ -79,48 +81,58 @@ public class LevelDomainBuilder {
 
         levelAndIds.entrySet().stream().forEach((entry) -> {
             levelAndDomain.put(entry.getKey(),
-                    DomainBuilder.createSetDomain(entry.getValue()));
+                    DomainBuilder.createDomain(entry.getValue()));
         });
 
         return levelAndDomain;
     }
 
     public Map<CourseLevel, Set<Integer>> getLevelAndIds() {
+
         Map<CourseLevel, Set<Integer>> levelAndIds = new HashMap<>();
 
-        for (CourseLevel level : CourseLevel.values()) {
-            Set<Course> courseSet = this.courseRepository
-                    .findByLevel(new SupportedCourseLevel(level.name()));
-
-            Set<Integer> idSet = courseSet.stream()
-                    .map(course -> course.getAutoGenId())
-                    .collect(Collectors.toSet());
-
-            levelAndIds.put(level, idSet);
-        }
+        this.courseRepository.findAll()
+                .stream()
+                .forEach(course -> checkCourseLevelAndPutToMap(course, levelAndIds));
 
         return levelAndIds;
     }
 
     public Map<CourseLevel, Set<Integer>> getLevelAndIdMappingFor(Set<Integer> idSet) {
-        Map<CourseLevel, Set<Integer>> levelAndIds = new HashMap<>();
+        if (idSet == null || idSet.isEmpty()) {
+            LOGGER.warn("Does not make sense to put null or empty set, right?");
+            return Collections.EMPTY_MAP;
+        }
         
-        idSet.forEach(id->{
-            Course course = this.courseRepository.findByAutoGenId(id);
-            
-            CourseLevel level = CourseLevel.ofDBString(course.getLevel().getLevel());
-            
-            if(levelAndIds.containsKey(level)){
-                levelAndIds.get(level).add(course.getAutoGenId());
-            }else{
-                Set<Integer> sameLevelIdSet = new HashSet<>();
-                sameLevelIdSet.add(course.getAutoGenId());
-                
-                levelAndIds.put(level, sameLevelIdSet);
-            }
-        });
+        Map<CourseLevel, Set<Integer>> levelAndIds = new HashMap<>();
+
+        this.courseRepository.findByAutoGenIds(idSet)
+                .stream()
+                .forEach(course -> checkCourseLevelAndPutToMap(course, levelAndIds));
 
         return levelAndIds;
+    }
+
+    /*
+     * Put course to the level to course map if its credit is supported; otherwise log it as warning
+     */
+    private void checkCourseLevelAndPutToMap(Course course, Map<CourseLevel, Set<Integer>> creditAndIds) {
+        try {
+            CourseLevel courseLevel = CourseLevel.ofDBString(course.getLevel().getLevel());
+
+            if (creditAndIds.containsKey(courseLevel)) {
+                creditAndIds.get(courseLevel).add(course.getAutoGenId());
+            } else {
+                Set<Integer> idSetWithSameLevel = new HashSet<>();
+                idSetWithSameLevel.add(course.getAutoGenId());
+
+                creditAndIds.put(courseLevel, idSetWithSameLevel);
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.warn("Course: {} id: {} has a unsupported course level {}",
+                    course.getName(), course.getAutoGenId(), course.getLevel().getLevel(), e);
+
+        }
     }
 
 }

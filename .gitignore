@@ -40,3 +40,6 @@
 /CourseRecommenderDataLoader/src/main/resources/data_source/course_selection_records/p32.txt
 /CourseRecommenderDataLoader/src/main/resources/data_source/course_selection_records/p19.txt
 /CourseRecommenderService/
+/CourseRecommenderAPI/target/
+/CourseRecommenderPersistence/target/
+/CourseRecommenderConstraintSolver/target/
