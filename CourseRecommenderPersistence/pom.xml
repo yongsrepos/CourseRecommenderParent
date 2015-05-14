@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>se.uu.it</groupId>
+    <artifactId>CourseRecommenderPersistence</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    
+    <parent>
+        <groupId>se.uu.it</groupId>
+        <artifactId>CourseRecommenderParent</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    
+    <properties>
+        <basedir>./</basedir>
+        <spring.data.jpa.version>1.8.0.RELEASE</spring.data.jpa.version>
+        <mysql.connector.version>5.1.34</mysql.connector.version>
+    </properties>
+    
+    <dependencies>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql.connector.version}</version>
+        </dependency>
+
+        <!-- Spring-data-jpa -->
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
+            <version>${spring.data.jpa.version}</version>
+        </dependency>
+                
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-entitymanager</artifactId>
+            <version>4.3.8.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+            <version>1.2.1.RELEASE</version>
+            <type>jar</type>
+        </dependency>
+        
+        <!-- Google Guava-->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>18.0</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>CourseRecommenderAPI</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>sql-maven-plugin</artifactId>
+                <version>1.5</version>
+
+                <dependencies>
+                    <!-- specify the dependent JDBC driver here -->
+                    <dependency>
+                        <groupId>mysql</groupId>
+                        <artifactId>mysql-connector-java</artifactId>
+                        <version>5.1.34</version>
+                    </dependency>
+                </dependencies>
+
+                <!-- common configuration shared by all executions -->
+                <configuration>
+                    <driver>com.mysql.jdbc.Driver</driver>
+                    <url>jdbc:mysql://localhost:3306/uu_cs_course_recommender</url>
+                    <username>root</username>
+                    <password>password</password>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>default-cli</id>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <!-- insert inital data -->
+                            <autocommit>true</autocommit>
+                            <srcFiles>
+                                <srcFile>src/main/sql/DDL/1_0_0_init_schema_def.sql</srcFile>
+                                <srcFile>src/main/sql/DML/1_0_1_init_insert_supported_course_credit.sql</srcFile>
+                                <srcFile>src/main/sql/DML/1_0_2_init_insert_supported_course_level.sql</srcFile>
+                            </srcFiles>
+                        </configuration>
+                    </execution>
+                    
+                    <execution>
+                        <id>create-schema</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <!-- no transaction -->
+                            <autocommit>true</autocommit>
+                            <srcFiles>
+                                <srcFile>src/main/sql/DDL/1_0_0_init_schema_def.sql</srcFile>
+                            </srcFiles>
+                            <!--
+                            <sqlCommand>create database uu_cs_course_recommender</sqlCommand>
+                            -->
+                        </configuration>
+                    </execution>
+                    
+                    <execution>
+                        <id>create-trigger</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <autocommit>true</autocommit>
+                            <delimiterType>row</delimiterType>
+                            <srcFiles>
+                                <srcFile>src/main/sql/DML/trigger/1_0_0_dml_trigger_overlapping_course.sql</srcFile>
+                            </srcFiles>
+                        </configuration>
+                    </execution>
+                    
+                    <execution>
+                        <id>create-data</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <orderFile>ascending</orderFile>
+                            <fileset>
+                                <basedir>${basedir}</basedir>
+                                <includes>
+                                    <include>src/main/sql/DML/1_0_1_init_insert_supported_course_credit.sql</include>
+                                    <include>src/main/sql/DML/1_0_2_init_insert_supported_course_level.sql</include>
+                                </includes>
+                            </fileset>
+                        </configuration>
+                    </execution>
+
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

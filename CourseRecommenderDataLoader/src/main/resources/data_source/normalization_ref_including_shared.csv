@@ -1,0 +1,90 @@
+1DL210;Algorithms and Data Structures I;1DL210;Algorithms and Data Structures I;Shared
+1DL250;Software Engineering;1DL250;Software Engineering;Shared
+1DL300;Database Design I;1DL300;Database Design I;Shared
+1DL321;Compiler Design I;1DL321;Compiler Design I;Shared
+1DL330;Functional Programming I;1DL330;Functional Programming I;Shared
+1DL340;Artificial Intelligence;1DL340;Artificial Intelligence;Shared
+1DL360;Data Mining I;1DL360;Data Mining I;Shared
+1DL400;Database Design II;1DL400;Database Design II;Shared
+1DL420;Compiler Design Project;1DL420;Compiler Design Project;Shared
+1DL450;Advanced Functional Programming;1DL450;Advanced Functional Programming;Shared
+1DL460;Data Mining II;1DL460;Data Mining II;Shared
+1DL520;Compiler Design II;1DL520;Compiler Design II;Shared
+1DT004;Real Time Systems;1DT004;Real Time Systems;Shared
+1DT012;IT and Society;1DT012;IT and Society;Shared
+1DT024;Advanced Computer Architecture;1DT024;Advanced Computer Architecture;Shared
+1DT032;Advanced Computer Science Studies in Sweden;1DT032;Advanced Computer Science Studies in Sweden;Shared
+1DT034;Programming Theory;1DT034;Programming Theory;Shared
+1DT052;Computer Networks I;1DT052;Computer Networks I;Shared
+1DT054;Project CS;1DT054;Project CS;Shared
+1DT059;Model Based Design of Embedded Software;1DT059;Model Based Design of Embedded Software;Shared
+1DT061;Computing Education Research;1DT061;Computing Education Research;Shared
+1DT063;Real Time Systems I;1DT063;Real Time Systems I;Shared
+1DT064;Distributed Systems;1DT064;Distributed Systems;Shared
+1DT071;Machine Learning;1DT071;Machine Learning;Shared
+1DT072;Secure Computer Systems I;1DT072;Secure Computer Systems I;Shared
+1DT073;Secure Computer Systems II;1DT073;Secure Computer Systems II;Shared
+1DT074;Computer Networks II;1DT074;Computer Networks II;Shared
+1DT075;Cryptology;1DT075;Cryptology;Shared
+1DT082;Computer Networks III;1DT082;Computer Networks III;Shared
+1MD000;User Centred Systems Design;1MD000;User Centred Systems Design;Shared
+1MD001;Advanced Interaction Design;1MD001;Advanced Interaction Design;Shared
+1MD002;User Interface Programming I;1MD002;User Interface Programming I;Shared
+1MD003;User Interface Programming II;1MD003;User Interface Programming II;Shared
+1MD004;IT, Ethics and Organization;1MD004;IT, Ethics and Organization;Shared
+1MD016;Human Computer Interaction;1MD016;Human Computer Interaction;Shared
+1MD017;IT Systems and Human Factors;1MD017;IT Systems and Human Factors;Shared
+1MD020;Advanced Visual Interfaces;1MD020;Advanced Visual Interfaces;Shared
+1TD046;Programming, Bridging Course;1TD046;Programming, Bridging Course;Shared
+1TD184;Optimization;1TD184;Optimization;Shared
+1TD204;Software Architecture with Java;1TD204;Software Architecture with Java;Shared
+1TD351;High Performance Computing and Programming;1TD351;High Performance Computing and Programming;Shared
+1TD388;Computer Graphics;1TD388;Computer Graphics;Shared
+1TD389;Scientific Visualization;1TD389;Scientific Visualization;Shared
+1TD396;Computer Assisted Image Analysis I;1TD396;Computer Assisted Image Analysis I;Shared
+1TD398;Computer Assisted Image Analysis II;1TD398;Computer Assisted Image Analysis II;Shared
+1TD480;Programming of Parallel Computers;1TD480;Programming of Parallel Computers;Shared
+1DL230;Algorithms and Data Structures II;1DL231;Algorithms and data structures II;Not shared
+1DL004;Software Engineering;1DL250;Software Engineering;Not shared
+1DL029;Database Design;1DL300;Database Design I;Not shared
+1DL021;Compiler Design I;1DL321;Compiler Design I;Not shared
+1DL320;Compiler Design I;1DL321;Compiler Design I;Not shared
+1DL027;Functional Programming;1DL330;Functional Programming I;Not shared
+1DL019;Artificial Intelligence;1DL340;Artificial Intelligence;Not shared
+1DL025;Data Mining;1DL360;Data Mining I;Not shared
+1DL029;Database Design;1DL400;Database Design II;Not shared
+1DL017;Provably Correct Software;1DL430;Provably Correct Software;Not shared
+1DL023;Constraint Technology for Solving Combinatorial Problems;1DL441;Combinatorial Optimisation using Constraint Programming, 10 hp;Not shared
+1DL440;Constraint Programming;1DL441;Combinatorial Optimisation using Constraint Programming, 10 hp;Not shared
+1DL027;Functional Programming;1DL450;Advanced Functional Programming;Not shared
+1DL025;Data Mining;1DL460;Data Mining II;Not shared
+1DL016;Compiler Design II;1DL520;Compiler Design II;Not shared
+1DT053;Test Methodology;1DL600;Software Testing and Maintenance;Not shared
+1DT008;Real Time Systems MN1;1DT004;Real Time Systems;Not shared
+1DT044;Operating Systems I;1DT020;Operating Systems, 7.5 hp;Not shared
+1DT043;Operating Systems II;1DT020;Operating Systems, 7.5 hp;Not shared
+1DT013;Computer Architecture II;1DT024;Advanced Computer Architecture;Not shared
+1DT007;Programming Theory;1DT034;Programming Theory;Not shared
+1DT014;Computer Networks I;1DT052;Computer Networks I;Not shared
+1DT062;Project CS;1DT054;Project CS;Not shared
+1DT011;Project CS;1DT054;Project CS;Not shared
+1DT029;Computing Education Research;1DT061;Computing Education Research;Not shared
+1DT018;Distributed Systems;1DT064;Distributed Systems;Not shared
+1DT057;Distributed Information Systems;1DT066;Distributed Information Systems;Not shared
+1DT022;Machine Learning;1DT071;Machine Learning;Not shared
+1DT009;Secure Computer Systems;1DT072;Secure Computer Systems I;Not shared
+1DT009;Secure Computer Systems;1DT073;Secure Computer Systems II;Not shared
+1DT015;Computer Networks II;1DT074;Computer Networks II;Not shared
+1DT026;Cryptography;1DT075;Cryptology;Not shared
+1DT010;Advanced Computer Networks, second course;1DT082;Computer Networks III;Not shared
+1MD023;Universal Design and Evaluation;1MD027;Universal Design and Evaluation, 15 hp;Not shared
+1MD012;Medical Informatics;1MD030;Medical Informatics, 5 hp;Not shared
+1TD044;Scientific Computing, Bridging Course;1TD045;Scientific Computing, Bridging Course, 5 hp;Not shared
+1TD183;Optimization NV1;1TD184;Optimization;Not shared
+1TD185;Computational Finance;1TD186;Computational Finance - Pricing and Valuation, 5 hp;Not shared
+1TD185;Computational Finance;1TD188;Computational Finance - Calibration and Estimation, 5 hp;Not shared
+1TD203;Software Architecture with Java NV1;1TD204;Software Architecture with Java;Not shared
+1TD379;High Performance Computing and Programming NV1;1TD351;High Performance Computing and Programming;Not shared
+1TD377;Computer Assisted Image Analysis NV1;1TD396;Computer Assisted Image Analysis I;Not shared
+1TD384;Computer Assisted Image Analysis NV2;1TD398;Computer Assisted Image Analysis II;Not shared
+1TD378;Programming of Parallel Computers NV1;1TD480;Programming of Parallel Computers;Not shared

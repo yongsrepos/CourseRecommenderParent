@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>se.uu.it</groupId>
+    <artifactId>CourseRecommenderParent</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <inceptionYear>2015 - </inceptionYear>
+    <organization>
+        <name>Yong Huang  &lt;yong.e.huang@gmail.com &gt;</name>
+    </organization>
+    <name>Course Recommender for Uppsala University Computer Science Master Program</name>
+    
+    <modules>
+        <module>./CourseRecommenderPersistence</module>
+        <module>./CourseRecommenderService</module>
+        <module>CourseRecommenderDomainReasoner</module>
+        <module>CourseRecommenderDataLoader</module>
+        <module>CourseRecommenderAPI</module>
+        <module>CourseRecommenderRuleMiner</module>
+        <module>CourseRecommenderConstraintSolver</module>
+    </modules>
+    
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <junit.version>4.11</junit.version>
+        <spring.context.version>4.1.5.RELEASE</spring.context.version>
+        <spring.core.version>4.1.5.RELEASE</spring.core.version>
+        <spring.beans.version>4.1.5.RELEASE</spring.beans.version>
+        <spring.test.version>4.1.5.RELEASE</spring.test.version>
+        <logback.version>1.1.2</logback.version>
+        <license.licenseName>apache_v2</license.licenseName>
+        <license.canUpdateCopyright>false</license.canUpdateCopyright>
+        <netbeans.hint.license>apache20</netbeans.hint.license>
+    </properties>    
+    
+    <dependencies>
+        
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+            <type>jar</type>
+        </dependency>
+        
+        <!--Spring Framework-->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.context.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>${spring.core.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>${spring.beans.version}</version>
+        </dependency>
+        
+        <!--Spring Test-->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${spring.test.version}</version>
+        </dependency>
+
+        <!-- logback -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>18.0</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>license-maven-plugin</artifactId>
+            <version>1.8</version>
+            <type>maven-plugin</type>
+        </dependency>
+    </dependencies>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>1.8</version>
+                <configuration>
+                    <properties>
+                        <owner>Yong Huang</owner>
+                        <projectName>Course Recommender</projectName>
+                        <email>yong.e.huang@gmail.com</email>
+                    </properties>
+                    <excludes>
+                        <exclude>**/README</exclude>
+                        <exclude>**/*.xml</exclude>
+                        <exclude>**/*.properties</exclude>
+                        <exclude>src/test/resources/**</exclude>
+                        <exclude>src/main/resources/**</exclude>
+                        <exclude>src/main/webapp/**</exclude>
+                    </excludes>
+                </configuration>
+                
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>update-file-header</goal>
+                        </goals>
+                        <phase>process-sources</phase>
+                        <configuration>
+                            <licenseName>apache_v2</licenseName>
+                            <roots>
+                                <root>src/main/java</root>
+                                <root>src/test</root>
+                            </roots>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    
+    <repositories>
+        <repository>
+            <id>Apache Releases</id>
+            <name>Apache Releases</name>
+            <url>https://repository.apache.org/content/repositories/releases/</url>
+        </repository>
+    </repositories>
+</project>
