@@ -1,4 +1,3 @@
-
 package se.uu.it.cs.recsys.persistence.repository;
 
 /*
@@ -20,8 +19,6 @@ package se.uu.it.cs.recsys.persistence.repository;
  * limitations under the License.
  * #L%
  */
-
-
 import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
@@ -35,12 +32,16 @@ import se.uu.it.cs.recsys.persistence.entity.SupportedCourseLevel;
  */
 public interface CourseRepository extends JpaRepository<Course, Integer> {
 
-    public Set<Course> findByTaughtYearAndStartPeriod(@Param("taughtYear") Short taughtYear, @Param("startPeriod") Short startPeriod);
+    public Set<Course> findByTaughtYearAndStartPeriod(@Param("taughtYear") Short taughtYear,
+            @Param("startPeriod") Short startPeriod);
+
+    public Course findByCodeAndTaughtYearAndStartPeriod(@Param("code") String code,
+            @Param("taughtYear") Short taughtYear, @Param("startPeriod") Short startPeriod);
     
-    public Course findByCodeAndTaughtYearAndStartPeriod(@Param("code") String code, @Param("taughtYear") Short taughtYear, @Param("startPeriod") Short startPeriod);
+    public Set<Integer> findAllDistinctAutoGenId();
 
     public Course findByAutoGenId(@Param("autoGenId") Integer autoGenId);
-    
+
     public Set<Course> findByAutoGenIds(@Param("autoGenIds") Set<Integer> autoGenIds);
 
     public Set<Course> findByCode(@Param("code") String code);
@@ -48,7 +49,5 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     public Set<Course> findByLevel(@Param("level") SupportedCourseLevel level);
 
     public Set<Course> findByCredit(@Param("credit") SupportedCourseCredit credit);
-    
-    
 
 }

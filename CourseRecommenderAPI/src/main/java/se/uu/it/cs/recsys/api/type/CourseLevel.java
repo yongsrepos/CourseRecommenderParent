@@ -59,5 +59,9 @@ public enum CourseLevel {
     public String getHistoryCourseSelString() {
         return this.historyCourseSelString;
     }
+    
+    public String getDBString(){
+        return this.name();
+    }
 
 }

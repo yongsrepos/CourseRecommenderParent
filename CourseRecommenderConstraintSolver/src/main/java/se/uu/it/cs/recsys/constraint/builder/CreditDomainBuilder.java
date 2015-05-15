@@ -67,7 +67,7 @@ public class CreditDomainBuilder {
      * @return the mapping between credit and the constraint set domain for the
      * input courses ids from planned years
      */
-    public Map<CourseCredit, SetDomain> getCreditAndIdConstaintDomainMappingFor(
+    public Map<CourseCredit, SetDomain> getCreditAndIdSetDomainMappingFor(
             Set<Integer> idSet) {
         if (idSet == null || idSet.isEmpty()) {
             LOGGER.warn("Does not make sense to put null or empty set, right?");
@@ -76,7 +76,7 @@ public class CreditDomainBuilder {
 
         Map<CourseCredit, SetDomain> creditAndDomain = new HashMap<>();
 
-        Map<CourseCredit, Set<Integer>> levelAndIds = getCreditAndIdMappingFor(idSet);
+        Map<CourseCredit, Set<Integer>> levelAndIds = getCreditAndIdSetMappingFor(idSet);
 
         levelAndIds.entrySet().stream().forEach((entry) -> {
             creditAndDomain.put(entry.getKey(),
@@ -91,10 +91,10 @@ public class CreditDomainBuilder {
      * @return the mapping between credit and the constraint set domain for all
      * courses ids from planned years
      */
-    public Map<CourseCredit, SetDomain> getCreditAndCourseIdConstaintDomain() {
+    public Map<CourseCredit, SetDomain> getCreditAndIdSetDomain() {
         Map<CourseCredit, SetDomain> creditAndDomain = new HashMap<>();
 
-        Map<CourseCredit, Set<Integer>> creditAndIds = getCreditAndIds();
+        Map<CourseCredit, Set<Integer>> creditAndIds = getCreditAndIdSetMapping();
 
         creditAndIds.entrySet().stream()
                 .forEach((entry) -> {
@@ -109,7 +109,7 @@ public class CreditDomainBuilder {
      *
      * @return the mapping between credit and all courses ids from planned years
      */
-    public Map<CourseCredit, Set<Integer>> getCreditAndIds() {
+    public Map<CourseCredit, Set<Integer>> getCreditAndIdSetMapping() {
         Map<CourseCredit, Set<Integer>> creditAndIds = new HashMap<>();
 
         this.courseRepository.findAll().forEach(course -> {
@@ -124,7 +124,7 @@ public class CreditDomainBuilder {
      * @param idSet the set of course ids
      * @return mapping between course credit and course
      */
-    public Map<CourseCredit, Set<Integer>> getCreditAndIdMappingFor(Set<Integer> idSet) {
+    public Map<CourseCredit, Set<Integer>> getCreditAndIdSetMappingFor(Set<Integer> idSet) {
         if (idSet == null || idSet.isEmpty()) {
             LOGGER.warn("Does not make sense to put null or empty set, right?");
             return Collections.EMPTY_MAP;

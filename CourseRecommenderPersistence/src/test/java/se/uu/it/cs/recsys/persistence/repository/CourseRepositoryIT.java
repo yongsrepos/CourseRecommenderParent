@@ -1,4 +1,3 @@
-
 package se.uu.it.cs.recsys.persistence.repository;
 
 /*
@@ -20,8 +19,6 @@ package se.uu.it.cs.recsys.persistence.repository;
  * limitations under the License.
  * #L%
  */
-
-
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -47,49 +44,57 @@ import se.uu.it.cs.recsys.persistence.entity.SupportedCourseLevel;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = PersistenceSpringConfig.class)
 public class CourseRepositoryIT {
-
+    
     private final static Logger LOGGER = LoggerFactory.getLogger(CourseRepository.class);
-
+    
     @Autowired
     private CourseRepository courseRepository;
-
+    
     public CourseRepositoryIT() {
     }
-
+    
     @Test
     public void testFindByCodeAndTaughtYearAndStartPeriod() {
     }
-
+    
     @Test
     public void testFindByCode() {
     }
-
+    
     @Test
     public void testFindByLevel() {
         Set<Course> advanced = this.courseRepository.findByLevel(new SupportedCourseLevel(CourseLevel.ADVANCED.name()));
-
+        
         Assert.assertTrue(!advanced.isEmpty());
     }
-
+    
     @Test
     public void testFindByCredit() {
         Set<Course> fiveCredits = this.courseRepository.findByCredit(new SupportedCourseCredit((double) CourseCredit.FIVE.getCredit()));
-
+        
         Assert.assertTrue(!fiveCredits.isEmpty());
     }
-
+    
     @Test
     public void testFindByTaughtYearAndStartPeriod() {
     }
-
+    
     @Test
     public void testFindByAutoGenId() {
     }
-
+    
     @Test
     public void testFindByAutoGenIds() {
-        Set<Integer> ids = Stream.of(1,2,3,4,5).collect(Collectors.toSet());
+        Set<Integer> ids = Stream.of(1, 2, 3, 4, 5).collect(Collectors.toSet());
         
         Assert.assertTrue(!this.courseRepository.findByAutoGenIds(ids).isEmpty());
     }
+    
+    @Test
+    public void testFindAllDistinctAutoGenId() {
+        Set<Integer> allIds = this.courseRepository.findAllDistinctAutoGenId();
+        
+        Assert.assertTrue(!allIds.isEmpty());
+    }
+    
 }

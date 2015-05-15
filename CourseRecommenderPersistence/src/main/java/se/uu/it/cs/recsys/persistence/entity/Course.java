@@ -49,6 +49,7 @@ import javax.xml.bind.annotation.XmlTransient;
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Course.findAll", query = "SELECT c FROM Course c"),
+    @NamedQuery(name = "Course.findAllDistinctAutoGenId", query = "SELECT DISTINCT(autoGenId) FROM Course c"),
     @NamedQuery(name = "Course.findByAutoGenId", query = "SELECT c FROM Course c WHERE c.autoGenId = :autoGenId"),
     @NamedQuery(name = "Course.findByAutoGenIds", query = "SELECT c FROM Course c WHERE c.autoGenId in :autoGenIds"),
     @NamedQuery(name = "Course.findByCode", query = "SELECT c FROM Course c WHERE c.code = :code"),

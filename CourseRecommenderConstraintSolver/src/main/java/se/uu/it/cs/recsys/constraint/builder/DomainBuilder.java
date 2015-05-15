@@ -41,6 +41,7 @@ import java.util.Set;
 import org.jacop.core.BoundDomain;
 import org.jacop.core.IntDomain;
 import org.jacop.core.Interval;
+import org.jacop.core.IntervalDomain;
 import org.jacop.core.SmallDenseDomain;
 import org.jacop.set.core.BoundSetDomain;
 
@@ -73,6 +74,23 @@ public class DomainBuilder {
 
         return domain;
     }
+    
+    public static IntDomain createIntDomain(Set<Integer> elements){
+         if (elements == null || elements.isEmpty()) {
+            throw new IllegalArgumentException("Requires non-empty input!");
+        }
+         
+         List<Integer> elemts = new ArrayList<>(elements);
+        Collections.sort(elemts);
+        
+        IntDomain result = new IntervalDomain();
+        
+        for(Integer elem:elemts){
+            result = result.union(elem);
+        }
+        
+        return result;
+    }
 
     /**
      *
@@ -84,44 +102,21 @@ public class DomainBuilder {
      * {@link BoundDomain}
      */
     public static IntDomain createIntDomain(Interval interval, int step) {
-        int elemCount = countElement(interval, step);
-
-        IntDomain result;
-
-        if (elemCount <= SMALL_DENSE_DOMAIN_ELEMENT_AMOUNT_LIMIT) {
-            result = new SmallDenseDomain();
-        } else {
-            result = new BoundDomain();
-        }
+        
+        IntDomain result = new IntervalDomain();
 
         for (int i = interval.min(); i <= interval.max();) {
-            result.unionAdapt(i);
+            result = result.union(i);
             i = i + step;
         }
-        
-        if(((interval.max() - interval.min())%step)!=0){
-            result.unionAdapt(interval.max());
+
+        if (((interval.max() - interval.min()) % step) != 0) {
+            result = result.union(interval.max());
         }
 
         return result;
     }
 
-    /**
-     *
-     * @param interval, the [min, max] interval
-     * @param step the step
-     * @return elements by walking through the element with step, bounderies
-     * inclusive
-     */
-    public static int countElement(Interval interval, int step) {
-        int quotient = (interval.max() - interval.min()) / step;
-        int remainder = (interval.max() - interval.min()) % step;
-        if (remainder == 0) {
-            return quotient + 1;
-        } else {
-            return quotient + 2;
-        }
-    }
 
     /**
      *

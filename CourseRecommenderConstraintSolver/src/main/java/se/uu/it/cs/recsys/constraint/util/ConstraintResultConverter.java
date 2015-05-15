@@ -1,4 +1,3 @@
-
 package se.uu.it.cs.recsys.constraint.util;
 
 /*
@@ -20,18 +19,19 @@ package se.uu.it.cs.recsys.constraint.util;
  * limitations under the License.
  * #L%
  */
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.jacop.set.core.SetDomainValueEnumeration;
 import org.jacop.set.core.SetVar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import se.uu.it.cs.recsys.persistence.entity.Course;
+import se.uu.it.cs.recsys.api.type.Course;
+import se.uu.it.cs.recsys.api.type.CourseLevel;
 import se.uu.it.cs.recsys.persistence.repository.CourseRepository;
 
 /**
@@ -71,18 +71,27 @@ public class ConstraintResultConverter {
             
             while (ve.hasMoreElements()) {
                 int[] elemArray = ve.nextSetElement().toIntArray();
-                                
-                for(int elem:elemArray){
-                    courseIds.add(elem);
-                }      
-            }
-                        
-            Set<Course> courseInfoSet = new HashSet<>();
-            courseIds.forEach(id -> {
-                Course course = this.courseRepository.findByAutoGenId(id);
-                courseInfoSet.add(course);
                 
-            });
+                for (int elem : elemArray) {
+                    courseIds.add(elem);
+                }
+            }
+            
+            Set<se.uu.it.cs.recsys.persistence.entity.Course> courseEntities
+                    = this.courseRepository.findByAutoGenIds(courseIds);
+            
+            Set<Course> courseInfoSet = courseEntities.stream().map(course -> {
+                Course courseInfo = new Course.Builder().setName(course.getName())
+                        .setCredit(course.getCredit().getCredit())
+                        .setCode(course.getCode())
+                        .setLevel(CourseLevel.ofDBString(course.getLevel().getLevel()))
+                        .setTaughtYear(Integer.valueOf(course.getTaughtYear()))
+                        .setStartPeriod(Integer.valueOf(course.getStartPeriod()))
+                        .setEndPeriod(Integer.valueOf(course.getEndPeriod()))
+                        .build();
+                
+                return courseInfo;
+            }).collect(Collectors.toSet());
             
             result.put(i, courseInfoSet);
             

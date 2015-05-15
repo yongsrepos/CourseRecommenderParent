@@ -19,13 +19,12 @@ package se.uu.it.cs.recsys.persistence.util;
  * limitations under the License.
  * #L%
  */
-
-
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.uu.it.cs.recsys.persistence.entity.Course;
@@ -34,34 +33,52 @@ import se.uu.it.cs.recsys.persistence.entity.SupportedCourseLevel;
 
 /**
  *
- * @author Yong Huang <yong.e.huang@gmail.com>
+ * @author Yong Huang &lt;yong.e.huang@gmail.com>&gt;
  */
 public class CourseFlattener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CourseFlattener.class);
 
-    public static Map<SupportedCourseLevel, Course> flattenBasedOnLevel(Set<Course> courses) {
+    public static Map<SupportedCourseLevel, Set<Integer>> flattenToLevelAndIdSetMap(Set<Course> courses) {
         if (courses == null || courses.isEmpty()) {
             LOGGER.warn("Does not make send to flatten a null or empty collection, right?");
 
             return Collections.EMPTY_MAP;
         }
 
-        return courses.stream()
-                .collect(Collectors
-                        .toMap(Course::getLevel, Function.identity()));
+        Map<SupportedCourseLevel, Set<Integer>> levelAndIdSetMapping = new HashMap<>();
+
+        courses.forEach(course -> {
+            if (levelAndIdSetMapping.containsKey(course.getLevel())) {
+                levelAndIdSetMapping.get(course.getLevel()).add(course.getAutoGenId());
+            } else {
+                Set<Integer> idSet = Stream.of(course.getAutoGenId()).collect(Collectors.toSet());
+                levelAndIdSetMapping.put(course.getLevel(), idSet);
+            }
+        });
+
+        return levelAndIdSetMapping;
     }
 
-    public static Map<SupportedCourseCredit, Course> flattenBasedOnCredit(Set<Course> courses) {
+    public static Map<SupportedCourseCredit, Set<Integer>> flattenToCreditAndIdSetMap(Set<Course> courses) {
         if (courses == null || courses.isEmpty()) {
             LOGGER.warn("Does not make send to flatten a null or empty collection, right?");
 
             return Collections.EMPTY_MAP;
         }
 
-        return courses.stream()
-                .collect(Collectors
-                        .toMap(Course::getCredit, Function.identity()));
+        Map<SupportedCourseCredit, Set<Integer>> creditAndIdSetMapping = new HashMap<>();
+
+        courses.forEach(course -> {
+            if (creditAndIdSetMapping.containsKey(course.getCredit()))  {
+                creditAndIdSetMapping.get(course.getCredit()).add(course.getAutoGenId());
+            } else {
+                Set<Integer> idSet = Stream.of(course.getAutoGenId()).collect(Collectors.toSet());
+                creditAndIdSetMapping.put(course.getCredit(), idSet);
+            }
+        });
+
+        return creditAndIdSetMapping;
 
     }
 
