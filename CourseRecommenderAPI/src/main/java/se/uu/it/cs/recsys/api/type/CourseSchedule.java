@@ -1,4 +1,3 @@
-
 package se.uu.it.cs.recsys.api.type;
 
 /*
@@ -20,8 +19,6 @@ package se.uu.it.cs.recsys.api.type;
  * limitations under the License.
  * #L%
  */
-
-
 /**
  *
  * @author Yong Huang &lt;yong.e.huang@gmail.com&gt;
@@ -31,10 +28,25 @@ public class CourseSchedule {
     private short taughtYear;
     private short startPeriod;
     private short endPeriod;
+    private short periodIdxAmongAllPlanPeriods;
+
+    public short getPeriodIdxAmongAllPlanPeriods() {
+        return periodIdxAmongAllPlanPeriods;
+    }
+
+    public void setPeriodIdxAmongAllPlanPeriods(short periodIdxAmongAllPlanPeriods) {
+        this.periodIdxAmongAllPlanPeriods = periodIdxAmongAllPlanPeriods;
+    }
 
     public CourseSchedule(short taughtYear, short startPeriod) {
         this.taughtYear = taughtYear;
         this.startPeriod = startPeriod;
+    }
+    
+    public CourseSchedule(short taughtYear, short startPeriod, short periodIdxAmongAllPlanPeriods) {
+        this.taughtYear = taughtYear;
+        this.startPeriod = startPeriod;
+        this.periodIdxAmongAllPlanPeriods = periodIdxAmongAllPlanPeriods;
     }
 
     public short getTaughtYear() {

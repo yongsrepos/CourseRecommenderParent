@@ -19,32 +19,31 @@ package se.uu.it.cs.recsys.constraint;
  * limitations under the License.
  * #L%
  */
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.jacop.set.core.SetVar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Component;
-import se.uu.it.cs.recsys.api.type.Course;
 import se.uu.it.cs.recsys.constraint.config.ConstraintSolverSpringConfig;
-import se.uu.it.cs.recsys.constraint.util.ConstraintResultConverter;
 
 /**
  *
  */
 @Component
 public class SolverApp {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(SolverApp.class);
-    
+
     public static void main(String[] args) {
         try (AnnotationConfigApplicationContext ctx
                 = new AnnotationConfigApplicationContext(ConstraintSolverSpringConfig.class)) {
             Solver solver = ctx.getBean(Solver.class);
-            
+
             Set<Integer> interestedCourseIdSet = Stream
                     .of(118, 119, 120, 121, 122, 123, 124, 125,
                             126, 127, 128, 129, 130, 131, 132, 133,
@@ -60,22 +59,24 @@ public class SolverApp {
                             206, 207, 208, 209, 210, 211, 212, 213,
                             214, 215, 216, 217)
                     .collect(Collectors.toSet());
+
+            Map<Integer, Set<Integer>> periodOneBasedIdxToMustHaveIdSet
+                    = new HashMap<>();
+            periodOneBasedIdxToMustHaveIdSet.put(1, Stream.of(118).collect(Collectors.toSet()));
             
-            
-            SetVar[] solution = solver.getSolutionWithPreference(interestedCourseIdSet);
-            
-            ConstraintResultConverter constraintResultConverter = ctx.getBean(ConstraintResultConverter.class);
-            
-            Map<Integer, Set<Course>> periodAndCourseNames = constraintResultConverter.convert(solution);
-            
-            periodAndCourseNames.entrySet().forEach(
-                    entry -> {
-                        LOGGER.info("Period {}, courses:", entry.getKey());
-                        entry.getValue().forEach(course -> LOGGER.info("{}", course));
-                    });
-            
+            solver.addMandatoryPlan(periodOneBasedIdxToMustHaveIdSet);
+
+            List<Map<Integer, Set<se.uu.it.cs.recsys.api.type.Course>>> solutions = solver.getSolutionWithPreference(interestedCourseIdSet);
+
+            solutions.forEach(
+                    solution -> {
+                        LOGGER.info("==> Solution: ");
+                        solution.entrySet().forEach(period -> {
+                            LOGGER.info("Period {}, courses:", period.getKey());
+                            period.getValue().forEach(course -> LOGGER.info("{}", course));
+                        });
+                    }
+            );
         }
-        
     }
-    
 }

@@ -20,24 +20,22 @@ package se.uu.it.cs.recsys.constraint;
  * #L%
  */
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.jacop.constraints.Sum;
-import org.jacop.constraints.XgteqC;
-import org.jacop.constraints.XlteqC;
-import org.jacop.constraints.XmulCeqZ;
-import org.jacop.core.IntVar;
+import java.util.stream.Stream;
+import org.jacop.core.Domain;
 import org.jacop.core.Store;
 import org.jacop.search.DepthFirstSearch;
 import org.jacop.search.Search;
 import org.jacop.search.SelectChoicePoint;
 import org.jacop.search.SimpleSelect;
 import org.jacop.search.SimpleSolutionListener;
-import org.jacop.set.constraints.AintersectBeqC;
-import org.jacop.set.constraints.CardAeqX;
 import org.jacop.set.core.SetDomain;
 import org.jacop.set.core.SetVar;
 import org.jacop.set.search.IndomainSetMin;
@@ -49,9 +47,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.uu.it.cs.recsys.api.type.CourseCredit;
 import se.uu.it.cs.recsys.api.type.CourseLevel;
-import se.uu.it.cs.recsys.constraint.builder.CreditDomainBuilder;
-import se.uu.it.cs.recsys.constraint.builder.LevelDomainBuilder;
+import se.uu.it.cs.recsys.api.type.CourseSchedule;
 import se.uu.it.cs.recsys.constraint.builder.ScheduleDomainBuilder;
+import se.uu.it.cs.recsys.constraint.util.ConstraintResultConverter;
 import se.uu.it.cs.recsys.persistence.entity.Course;
 import se.uu.it.cs.recsys.persistence.repository.CourseRepository;
 import se.uu.it.cs.recsys.persistence.util.CourseFlattener;
@@ -77,33 +75,39 @@ public class Solver {
      * 12. Credit(advanced) >= 60
      * </pre>
      */
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(Solver.class);
-    
+
     private final Set<Integer> interestedCourseIdSet = new HashSet<>();
-    
+
     private final Set<Course> interestedCourses = new HashSet<>();
-    
+
     private final Map<CourseLevel, Set<Integer>> levelToInterestedCourseIds
             = new HashMap<>();
-    
+
     private final Map<CourseCredit, Set<Integer>> creditToInterestedCourseIds
             = new HashMap<>();
-    
+
+    private final Map<Integer, Set<Integer>> periodOneBasedIdxToMustHaveIdSet
+            = new HashMap<>();
+
+    private final Set<CourseSchedule> schedulePeriodsInfo = new HashSet<>();
+
+    public static final int DEFAULT_SUGGESTION_AMOUNT = 5;
+
+    private int suggestionAmount = DEFAULT_SUGGESTION_AMOUNT;
+
     @Autowired
     private CourseRepository courseRepository;
-    
-    @Autowired
-    private LevelDomainBuilder levelDomainBuilder;
-    
-    @Autowired
-    private CreditDomainBuilder creditDomainBuilder;
-    
+
     @Autowired
     private ScheduleDomainBuilder scheduleDomainBuilder;
-    
+
+    @Autowired
+    private ConstraintResultConverter resultConverter;
+
     public static final int TOTAL_PLAN_PERIODS = 6;
-    
+
     public static final int MIN_PERIOD_CREDIT = 10;
     public static final int MAX_PERIOD_CREDIT = 30;
     public static final int MIN_SEMESTER_CREDIT = 28;
@@ -118,9 +122,9 @@ public class Solver {
      * integers.
      */
     public static final int CREDIT_NORMALIZATION_SCALE = 10;
-    
+
     public static final int CREDIT_STEP_AFTER_SCALING = (int) (0.5 * CREDIT_NORMALIZATION_SCALE);
-    
+
     public static final int MIN_COURSE_AMOUNT_PERIOD = 1;
     public static final int MAX_COURSE_AMOUNT_PERIOD = 3;
 
@@ -129,10 +133,10 @@ public class Solver {
      * @return a random course selection suggestion that matches a degree
      * requirements
      */
-    public SetVar[] getRandomSolution() {
-        
+    public List<Map<Integer, Set<se.uu.it.cs.recsys.api.type.Course>>> getRandomSolution() {
+
         return getSolutionWithPreference(this.courseRepository.findAllDistinctAutoGenId());
-        
+
     }
 
     /**
@@ -143,82 +147,62 @@ public class Solver {
      * solution found
      * @throws IllegalArgumentException if input is null or empty
      */
-    public SetVar[] getSolutionWithPreference(Set<Integer> argInterestedCourseIdSet) {
-        
+    public List<Map<Integer, Set<se.uu.it.cs.recsys.api.type.Course>>> getSolutionWithPreference(Set<Integer> argInterestedCourseIdSet) {
+
         if (argInterestedCourseIdSet == null || argInterestedCourseIdSet.isEmpty()) {
             throw new IllegalArgumentException("Input must be non-empty!");
         }
-        
+
         initFields(argInterestedCourseIdSet);
-        
+
         Store store = new Store();
-        
+
         SetVar[] pers = initSetVars(store, this.interestedCourseIdSet);
-        
+
         boolean isStoreConsistent = postConstraints(store, pers);
         if (!isStoreConsistent) {
             LOGGER.debug("No satisfactory solution to CSP!");
-            return new SetVar[0];
+            return Collections.EMPTY_LIST;
         }
-        
+
         return search(store, pers);
-        
+
     }
 
     // 1. Init each period as SetVar
     private SetVar[] initSetVars(Store store, Set<Integer> interestedCourseIdSet) {
         LOGGER.debug("Initiate var for each study period.");
-        
+
         SetVar[] p = new SetVar[6];
-        
+
         Map<Integer, SetDomain> domains = this.scheduleDomainBuilder
                 .createScheduleSetDomainsFor(interestedCourseIdSet);
-        
+
         for (int i = 0; i <= 5; i++) {
             p[i] = new SetVar(store, "Period_" + (i + 1), domains.get(i + 1));
         }
-        
+
         return p;
     }
-    
+
     private boolean postConstraints(Store store, SetVar[] pers) {
         SetVar allCourseIdUnion = ConstraintImposer.getCourseIdUnion(store, pers, this.interestedCourseIdSet);
-        
+
         return ConstraintImposer.postDisjointConst(store, pers)
+                && ConstraintImposer.postMustHaveElemInSetConst(store, pers, periodOneBasedIdxToMustHaveIdSet)
                 && ConstraintImposer.postAdvancedCreditsConst(store, allCourseIdUnion, getCreditToInterestedAdvancedCourseIdSetMapping())
                 && ConstraintImposer.postTotalCreditsConst(store, allCourseIdUnion, this.creditToInterestedCourseIds)
                 && ConstraintImposer.postEachPeriodCardinalityConst(store, pers)
                 && ConstraintImposer.postEachPeriodCreditConst(store, pers, this.creditToInterestedCourseIds);
 
-//        Set<Integer> advancedCourseIdSet = this.levelToInterestedCourseIds.get(CourseLevel.ADVANCED);
-//        SetVar advancedCourseIdSetVar = ConstraintImposer.getIntersection(store, allCourseIdUnion, advancedCourseIdSet);
-//        Map<CourseCredit, SetVar> creditToAdvancedIdSetVar = ConstraintImposer
-//                .getIntersection(store, advancedCourseIdSetVar,
-//                        this.creditToInterestedCourseIds);
-//        IntVar advancedCredits = ConstraintImposer.getCredits(store, creditToAdvancedIdSetVar);
-//        store.impose(new XgteqC(advancedCredits, MIN_ADVANCED_CREDIT * CREDIT_NORMALIZATION_SCALE));
-//        LOGGER.debug("After posting advanced credits constraint, consistent?{}", store.consistency());
-//        Map<CourseCredit, SetVar> creditToAllIdUnionSetVar = ConstraintImposer
-//                .getIntersection(store, allCourseIdUnion, this.creditToInterestedCourseIds);
-//        Map<CourseCredit, Integer> creditToScaledUpperLimit = ConstraintImposer.getCreditToScaledUpperLimit(this.creditToInterestedCourseIds);
-//        IntVar totalCredits = ConstraintImposer.getTotalScaledCreditsForAllPeriods(store, creditToAllIdUnionSetVar, creditToScaledUpperLimit);
-//        store.impose(new XgteqC(totalCredits, MIN_ALL_PERIODS_CREDIT));
-//        LOGGER.debug("After posting total credits constraint, consistent?{}", store.consistency());
-//        postPeriodCredit(store, pers, argInterestedCourseIdSet);
-//
-//        postSemesterCredit(store, pers, argInterestedCourseIdSet);
-//
-//        postTotalCredit(store, pers, argInterestedCourseIdSet);
-//
-//        postCourseLevelConst(store, pers, argInterestedCourseIdSet);
     }
-    
+
     private Map<CourseCredit, Set<Integer>> getCreditToInterestedAdvancedCourseIdSetMapping() {
         Set<Course> interestedAdvancedCourseSet = this.interestedCourses.stream()
                 .filter(course -> course.getLevel().getLevel()
                         .equals(CourseLevel.ADVANCED.getDBString()))
                 .collect(Collectors.toSet());
-        
+
         return CourseFlattener.flattenToCreditAndIdSetMap(interestedAdvancedCourseSet)
                 .entrySet().stream()
                 .collect(Collectors.toMap(entry -> {
@@ -226,126 +210,103 @@ public class Solver {
                 }, Map.Entry::getValue));
     }
 
-    // 4. Post credit const for each period
-    private void postPeriodCredit(Store store, SetVar[] vars,
-            Set<Integer> interestedCourseIdSet) {
-        LOGGER.debug("Posting constraint on credits for each study period.");
-        
-        for (SetVar periodVar : vars) {
-            IntVar credit = getCredits(store, periodVar, interestedCourseIdSet);
-            
-            XgteqC periodCreditMinConst = new XgteqC(credit, MIN_PERIOD_CREDIT);
-            XlteqC periodCreditMaxConst = new XlteqC(credit, MAX_PERIOD_CREDIT);
-            
-            store.impose(periodCreditMinConst);
-            store.impose(periodCreditMaxConst);
-        }
-        
-        LOGGER.debug("After posting constraint, is store consistent? {}", store.consistency());
-        
-    }
-
-    // 5. Post credit const for each semester [27.5, 35]
-    private void postSemesterCredit(Store store, SetVar[] vars,
-            Set<Integer> interestedCourseIdSet) {
-        LOGGER.debug("Posting constraint on credits for each study semester.");
-        
-        IntVar p1 = getCredits(store, vars[0], interestedCourseIdSet);
-        IntVar p2 = getCredits(store, vars[1], interestedCourseIdSet);
-
-        // semester 1
-        ArrayList<IntVar> semester1 = new ArrayList<>();
-        semester1.add(p1);
-        semester1.add(p2);
-        
-        IntVar semester1Credit = new IntVar(store, MIN_SEMESTER_CREDIT,
-                MAX_SEMESTER_CREDIT);
-        Sum semester1Const = new Sum(semester1, semester1Credit);
-        store.impose(semester1Const);
-
-        // semester 2
-        IntVar p3 = getCredits(store, vars[2], interestedCourseIdSet);
-        IntVar p4 = getCredits(store, vars[3], interestedCourseIdSet);
-        ArrayList<IntVar> semester2 = new ArrayList<>();
-        semester2.add(p3);
-        semester2.add(p4);
-        IntVar semester2Credit = new IntVar(store, MIN_SEMESTER_CREDIT,
-                MAX_SEMESTER_CREDIT);
-        Sum semester2Const = new Sum(semester2, semester2Credit);
-        store.impose(semester2Const);
-
-        // semester 3
-        IntVar p5 = getCredits(store, vars[4], interestedCourseIdSet);
-        IntVar p6 = getCredits(store, vars[5], interestedCourseIdSet);
-        ArrayList<IntVar> semester3 = new ArrayList<>();
-        semester3.add(p5);
-        semester3.add(p6);
-        IntVar semester3Credit = new IntVar(store, MIN_SEMESTER_CREDIT,
-                MAX_SEMESTER_CREDIT);
-        Sum semester3Const = new Sum(semester3, semester3Credit);
-        store.impose(semester3Const);
-        
-        LOGGER.debug("After posting constraint, is store consistent? {}", store.consistency());
-        
-    }
-
-    // 6. Post total credit const sum >= 90
-    private void postTotalCredit(Store store, SetVar[] vars,
-            Set<Integer> interestedCourseIdSet) {
-        LOGGER.debug("Posting constraint on total credits for all study periods.");
-        
-        IntVar totalCredits = getTotalCredits(store, vars, interestedCourseIdSet);
-        
-        XgteqC theConst = new XgteqC(totalCredits, MIN_ALL_PERIODS_CREDIT);
-        
-        store.impose(theConst);
-        
-        LOGGER.debug("After posting constraint, is store consistent? {}", store.consistency());
-        
-    }
-
-    // 7. Post level const, sum(advanced) >= 60
-    private void postCourseLevelConst(Store store, SetVar[] periodVars,
-            Set<Integer> interestedCourseIdSet) {
-        LOGGER.debug("Posting constraint on course levels, e.g advanced course total credits.");
-        
-        IntVar advancedCredits = getAllAdvancedLevelCredits(store, periodVars,
-                interestedCourseIdSet);
-        
-        XgteqC theConst = new XgteqC(advancedCredits, MIN_ADVANCED_CREDIT);
-        
-        store.impose(theConst);
-        
-        LOGGER.debug("After posting constraint, is store consistent? {}", store.consistency());
-    }
-    
-    private SetVar[] search(Store store, SetVar[] vars) {
+    private List<Map<Integer, Set<se.uu.it.cs.recsys.api.type.Course>>> search(Store store, SetVar[] vars) {
         LOGGER.debug("Start searching solution ... ");
-        
-        boolean result = store.consistency();
-        
-        LOGGER.debug("Has CSP solution? {}", result);
-        
-        Search<SetVar> label = new DepthFirstSearch<>();
-        
-        SelectChoicePoint<SetVar> select = new SimpleSelect<>(vars,
-                new MinLubCard<>(), new MaxGlbCard<>(),
-                new IndomainSetMin<>());
-        
-        label.setSolutionListener(new SimpleSolutionListener<>());
-        
-        result = label.labeling(store, select);
-        
-        if (result) {
-            LOGGER.debug("Solution: {}", result);
-        } else {
-            LOGGER.debug("No solution!");
-            return new SetVar[0];
-        }
-        
-        return vars;
+
+        Domain[][] solutions = doSearch(store, vars);
+
+        List<Map<Integer, Set<se.uu.it.cs.recsys.api.type.Course>>> result = new ArrayList<>();
+
+        Arrays.stream(solutions)
+                .filter(solution -> {
+                    return solution != null && solution.length > 0;
+                })
+                .forEach(solution -> {
+                    result.add(this.resultConverter.convert(solution));
+                });
+
+        return result;
+
     }
-    
+
+    private Domain[][] doSearch(Store store, SetVar[] vars) {
+
+        Search<SetVar> search = new DepthFirstSearch<>();
+
+        SelectChoicePoint<SetVar> select = new SimpleSelect<>(
+                vars,
+                new MinLubCard<>(),
+                new MaxGlbCard<>(),
+                new IndomainSetMin<>());
+        search.setSolutionListener(new SimpleSolutionListener<>());
+        search.getSolutionListener().setSolutionLimit(this.suggestionAmount);
+
+        search.getSolutionListener().recordSolutions(true);
+
+        search.labeling(store, select);
+
+        return search.getSolutionListener().getSolutions();
+    }
+
+    /**
+     * A suggestion covers course selection for all study periods.
+     *
+     * @param suggestionAmount must be positive, specified how many of such
+     * suggestions will be generated.If not specified, a default value of
+     * {@link #DEFAULT_SUGGESTION_AMOUNT} will be applied.
+     *
+     * @throws IllegalArgumentException if input is less than one.
+     */
+    public void setSuggestionAmount(int suggestionAmount) {
+        if (suggestionAmount < 1) {
+            throw new IllegalArgumentException("Input must be bigger than 0!");
+        }
+
+        this.suggestionAmount = suggestionAmount;
+    }
+
+    public void addMandatoryCourse(Set<se.uu.it.cs.recsys.api.type.Course> mandatoryCourseSet) {
+        if (mandatoryCourseSet == null || mandatoryCourseSet.isEmpty()) {
+            LOGGER.info("No mandatory selection set.");
+            return;
+        }
+        mandatoryCourseSet.forEach(course -> {
+            Course courseEntity = this.courseRepository.findByCodeAndTaughtYearAndStartPeriod(course.getCode(),
+                    course.getTaughtYear().shortValue(),
+                    course.getStartPeriod().shortValue());
+
+            int periodIdx = findSchedulePeriodIndex(course.getTaughtYear().shortValue(),
+                    course.getStartPeriod().shortValue());
+
+            if (this.periodOneBasedIdxToMustHaveIdSet.containsKey(periodIdx)) {
+                this.periodOneBasedIdxToMustHaveIdSet.get(periodIdx).add(courseEntity.getAutoGenId());
+            } else {
+                this.periodOneBasedIdxToMustHaveIdSet.put(periodIdx,
+                        Stream.of(courseEntity.getAutoGenId()).collect(Collectors.toSet()));
+            }
+        });
+
+    }
+
+    private int findSchedulePeriodIndex(short taughtYear, short startPeriod) {
+        for (CourseSchedule schedule : this.schedulePeriodsInfo) {
+            if (schedule.getTaughtYear() == taughtYear && schedule.getStartPeriod() == startPeriod) {
+                return schedule.getPeriodIdxAmongAllPlanPeriods();
+            }
+        }
+
+        throw new IllegalStateException("Has not schedule info for taught year " + taughtYear + ", start period " + startPeriod);
+    }
+
+    public void addMandatoryPlan(Map<Integer, Set<Integer>> periodOneBasedIdxToMustHaveIdSet) {
+        if (periodOneBasedIdxToMustHaveIdSet == null || periodOneBasedIdxToMustHaveIdSet.isEmpty()) {
+            LOGGER.info("No mandatory selection set.");
+            return;
+        }
+
+        this.periodOneBasedIdxToMustHaveIdSet.putAll(periodOneBasedIdxToMustHaveIdSet);
+    }
+
     private void initFields(Set<Integer> argInterestedCourseIdSet) {
         //1. init interested id set
         this.interestedCourseIdSet.addAll(argInterestedCourseIdSet);
@@ -370,152 +331,22 @@ public class Solver {
                             CourseLevel.ofDBString(entry.getKey().getLevel()),
                             entry.getValue());
                 });
+
+        setDefaultPeriodsScheduleInfo();
     }
-    
-    private IntVar getAllAdvancedLevelCredits(Store store, SetVar[] periods,
-            Set<Integer> interestedCourseIdSet) {
-        ArrayList<IntVar> creditsForEachPeriodByLevel = new ArrayList<>();
-        
-        for (SetVar period : periods) {
-            IntVar credit = getPeriodCreditsByCourseLevel(store, period,
-                    CourseLevel.ADVANCED, interestedCourseIdSet);
-            creditsForEachPeriodByLevel.add(credit);
+
+    private void setDefaultPeriodsScheduleInfo() {
+        if (this.schedulePeriodsInfo.isEmpty()) {
+            this.schedulePeriodsInfo.addAll(
+                    Stream.of(new CourseSchedule((short) 2015, (short) 1, (short) 1),
+                            new CourseSchedule((short) 2015, (short) 2, (short) 2),
+                            new CourseSchedule((short) 2016, (short) 3, (short) 3),
+                            new CourseSchedule((short) 2016, (short) 4, (short) 4),
+                            new CourseSchedule((short) 2016, (short) 1, (short) 5),
+                            new CourseSchedule((short) 2016, (short) 2, (short) 6))
+                    .collect(Collectors.toSet())
+            );
+
         }
-        
-        IntVar totalAdvancedCreditsVar = new IntVar(store, MIN_ADVANCED_CREDIT,
-                MAX_PERIOD_CREDIT * TOTAL_PLAN_PERIODS);
-        
-        Sum sumConst = new Sum(creditsForEachPeriodByLevel, totalAdvancedCreditsVar);
-        
-        store.impose(sumConst);
-        
-        return sumConst.sum;
-    }
-
-    /*
-     * Gets the total credits by summing up the credits from different periods.
-     */
-    private IntVar getTotalCredits(Store store, SetVar[] vars,
-            Set<Integer> interestedCourseIdSet) {
-
-        /*
-         * Sum up the total credit for courses at different credit levels.
-         */
-        ArrayList<IntVar> creditsForEachPeriod = new ArrayList<>();
-        
-        for (SetVar period : vars) {
-            IntVar sum = getCredits(store, period, interestedCourseIdSet);
-            creditsForEachPeriod.add(sum);
-        }
-        
-        IntVar totalCreditVar = new IntVar(store, MIN_ALL_PERIODS_CREDIT,
-                MAX_PERIOD_CREDIT * TOTAL_PLAN_PERIODS);
-        
-        Sum sumConst = new Sum(creditsForEachPeriod, totalCreditVar);
-        
-        store.impose(sumConst);
-        
-        return sumConst.sum;
-    }
-
-    /**
-     * Calculates the total credits of the input course ID set.
-     *
-     * @param store
-     * @param idSetVar the SetVar for the id set
-     * @return
-     */
-    private IntVar getCredits(Store store, SetVar idSetVar,
-            Set<Integer> interestedCourseIdSet) {
-        /*
-         * Sum up the total credit for courses at different credit levels.
-         */
-        ArrayList<IntVar> credits = new ArrayList<>();
-        
-        for (CourseCredit credit : CourseCredit.values()) {
-            IntVar sum = getPeriodCreditsByCreditCategory(store, idSetVar,
-                    credit, interestedCourseIdSet);
-            credits.add(sum);
-        }
-        
-        IntVar creditVar = new IntVar(store, 0, MAX_PERIOD_CREDIT);
-        
-        Sum sumConst = new Sum(credits, creditVar);
-        
-        store.impose(sumConst);
-        
-        return sumConst.sum;
-    }
-
-    /**
-     * Gets the credits of courses at the specified level for the specified
-     * period.
-     *
-     * @param store
-     * @param periodIdSetVar the set of candidate courses available in this
-     * period
-     * @param targetCredit the credit level of a course, e.g
-     * {@link CourseCredit#FIVE}
-     * @return total credits from the courses of the input credit
-     */
-    private IntVar getPeriodCreditsByCreditCategory(Store store, SetVar periodIdSetVar,
-            CourseCredit targetCredit, Set<Integer> interestedCourseIdSet) {
-        /*
-         * Get all courses at current period; gets the intersect with
-         * eventual planned courses to select; multiply cardinality of the
-         * intersect set with the credit.
-         */
-        Map<CourseCredit, SetDomain> creditAndDom = this.creditDomainBuilder
-                .getCreditAndIdSetDomainMappingFor(interestedCourseIdSet);
-        
-        SetDomain domForTargetCredit = creditAndDom.get(targetCredit);
-        
-        if (domForTargetCredit == null) {
-            LOGGER.warn("No mapping domain for credit {}", targetCredit.getCredit());
-            return new IntVar(store, 0, 0);
-        }
-        
-        SetVar setVarForTargetCredit = new SetVar(store, domForTargetCredit);
-        
-        SetVar intersectVar = new SetVar(store, periodIdSetVar.dom()); // init it 
-
-        AintersectBeqC intersectConst = new AintersectBeqC(periodIdSetVar, setVarForTargetCredit,
-                intersectVar);
-        store.impose(intersectConst);
-        
-        IntVar card = new IntVar(store, 0, MAX_COURSE_AMOUNT_PERIOD);
-        CardAeqX cardConst = new CardAeqX(intersectConst.c, card);
-        store.impose(cardConst);
-        
-        IntVar creditSum = new IntVar(store, 0, MAX_PERIOD_CREDIT);
-        XmulCeqZ mul = new XmulCeqZ(cardConst.cardinality, (int) targetCredit.getCredit(),
-                creditSum);
-        store.impose(mul);
-        
-        return mul.z;
-    }
-    
-    private IntVar getPeriodCreditsByCourseLevel(Store store, SetVar periodVar,
-            CourseLevel level, Set<Integer> interestedCourseIdSet) {
-        /*
-         * Get the all courses at current period; gets the intersect with
-         * eventual planned courses to select; multiply cardinality of the
-         * intersect set with the credit.
-         */
-        Map<CourseLevel, SetDomain> creditAndDom = this.levelDomainBuilder
-                .getLevelIdConstaintDomainMappingFor(interestedCourseIdSet);
-        
-        SetVar courseIdSetForLevel = new SetVar(store, creditAndDom.get(level));
-        
-        SetVar interSet = new SetVar(store, periodVar.dom());
-
-        // intersect of current period and the course ids at the specified level
-        AintersectBeqC interConst = new AintersectBeqC(periodVar, courseIdSetForLevel,
-                interSet);
-        store.impose(interConst);
-        
-        IntVar creditAtThisLevel = getCredits(store, interConst.c, interestedCourseIdSet);
-        
-        return creditAtThisLevel;
     }
 }
