@@ -46,6 +46,13 @@
             <type>jar</type>
         </dependency>
         
+        <!-- Tomcat JDBC datasource pool -->
+        <dependency>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat-jdbc</artifactId>
+            <version>8.0.20</version>
+        </dependency>
+        
         <!-- Google Guava-->
         <dependency>
             <groupId>com.google.guava</groupId>

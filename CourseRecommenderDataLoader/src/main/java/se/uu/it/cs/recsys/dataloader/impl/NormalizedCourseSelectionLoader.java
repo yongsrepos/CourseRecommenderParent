@@ -84,7 +84,8 @@ public class NormalizedCourseSelectionLoader extends CourseSelectionLoader {
 
                 Integer courseId = this.courseRepository.findByCodeAndTaughtYearAndStartPeriod(courseCode,
                         FixedValueForPreviousYears.COURSE_TAUGHT_YEAR.shortValue(),
-                        FixedValueForPreviousYears.COURSE_START_PERIOD.shortValue()).getAutoGenId();
+                        FixedValueForPreviousYears.COURSE_START_PERIOD.shortValue())
+                        .getAutoGenId();
 
                 this.courseSelectionNormalizedRepository.save(new CourseSelectionNormalized(studentId, courseId));
 
@@ -96,7 +97,6 @@ public class NormalizedCourseSelectionLoader extends CourseSelectionLoader {
                     Set<Course> courseSetWithTargetCode = this.courseRepository.findByCode(toCode);
                     
                     // same course code can have two courseId, for both past and future
-
                     if (courseSetWithTargetCode != null) {
                         courseSetWithTargetCode.forEach(course -> {
                             // normalize course selection record to plan year

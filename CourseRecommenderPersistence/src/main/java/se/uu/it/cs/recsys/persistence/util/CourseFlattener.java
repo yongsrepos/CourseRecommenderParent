@@ -70,7 +70,7 @@ public class CourseFlattener {
         Map<SupportedCourseCredit, Set<Integer>> creditAndIdSetMapping = new HashMap<>();
 
         courses.forEach(course -> {
-            if (creditAndIdSetMapping.containsKey(course.getCredit()))  {
+            if (creditAndIdSetMapping.containsKey(course.getCredit())) {
                 creditAndIdSetMapping.get(course.getCredit()).add(course.getAutoGenId());
             } else {
                 Set<Integer> idSet = Stream.of(course.getAutoGenId()).collect(Collectors.toSet());
@@ -92,6 +92,30 @@ public class CourseFlattener {
         return courses.stream()
                 .map(course -> course.getAutoGenId())
                 .collect(Collectors.toSet());
+    }
+
+    public static Map<String, Set<Integer>> flattenToCodeAndIdSet(Set<Course> courseSet) {
+        if (courseSet == null || courseSet.isEmpty()) {
+            LOGGER.warn("Does not make send to flatten a null or empty collection, right?");
+
+            return Collections.EMPTY_MAP;
+        }
+
+        Map<String, Set<Integer>> codeAndIdSet = new HashMap<>();
+
+        courseSet.forEach(course -> {
+            String code = course.getCode();
+
+            if (codeAndIdSet.containsKey(code)) {
+                codeAndIdSet.get(code).add(course.getAutoGenId());
+            } else {
+                codeAndIdSet.put(code,
+                        Stream.of(course.getAutoGenId())
+                        .collect(Collectors.toSet()));
+            }
+        });
+
+        return codeAndIdSet;
     }
 
 }

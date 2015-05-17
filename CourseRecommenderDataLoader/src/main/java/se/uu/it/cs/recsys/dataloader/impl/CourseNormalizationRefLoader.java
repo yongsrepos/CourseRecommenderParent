@@ -50,7 +50,7 @@ public class CourseNormalizationRefLoader implements DataLoader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CourseNormalizationRefLoader.class);
 
-    private static final String NORMALIZATION_FILE = "data_source/normalization_ref_including_shared.csv";
+    private static final String NORMALIZATION_FILE = "data_source/normalization_ref.csv";
 
     @Value(NORMALIZATION_FILE)
     private Resource normalizationFile;

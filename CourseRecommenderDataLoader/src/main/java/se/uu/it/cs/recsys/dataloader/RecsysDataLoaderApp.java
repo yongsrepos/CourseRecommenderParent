@@ -1,4 +1,3 @@
-
 package se.uu.it.cs.recsys.dataloader;
 
 /*
@@ -20,7 +19,6 @@ package se.uu.it.cs.recsys.dataloader;
  * limitations under the License.
  * #L%
  */
-
 import java.io.IOException;
 import java.util.logging.Level;
 import org.slf4j.Logger;
@@ -30,6 +28,8 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.stereotype.Component;
 import se.uu.it.cs.recsys.api.exception.DataSourceFileAccessException;
 import se.uu.it.cs.recsys.api.exception.DatabaseAccessException;
+import se.uu.it.cs.recsys.api.type.CourseCredit;
+import se.uu.it.cs.recsys.api.type.CourseLevel;
 import se.uu.it.cs.recsys.dataloader.config.RecsysDataLoaderSpringConfig;
 import se.uu.it.cs.recsys.dataloader.impl.ComputingDomainTaxonomyLoader;
 import se.uu.it.cs.recsys.dataloader.impl.CourseNormalizationRefLoader;
@@ -38,6 +38,10 @@ import se.uu.it.cs.recsys.dataloader.impl.NormalizedCourseSelectionLoader;
 import se.uu.it.cs.recsys.dataloader.impl.OriginalCourseSelectionLoader;
 import se.uu.it.cs.recsys.dataloader.impl.PreviousYearsCourseLoader;
 import se.uu.it.cs.recsys.persistence.config.PersistenceSpringConfig;
+import se.uu.it.cs.recsys.persistence.entity.SupportedCourseCredit;
+import se.uu.it.cs.recsys.persistence.entity.SupportedCourseLevel;
+import se.uu.it.cs.recsys.persistence.repository.SupportedCourseCreditRepository;
+import se.uu.it.cs.recsys.persistence.repository.SupportedCourseLevelRepository;
 import se.uu.it.cs.recsys.semantic.config.ComputingDomainReasonerSpringConfig;
 
 /**
@@ -49,8 +53,14 @@ public class RecsysDataLoaderApp {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecsysDataLoaderApp.class);
 
     @Autowired
+    private SupportedCourseCreditRepository supportedCourseCreditRepository;
+
+    @Autowired
+    private SupportedCourseLevelRepository supportedCourseLevelRepository;
+
+    @Autowired
     private FuturePlannedCourseLoader futurePlannedCourseLoader;
-    
+
     @Autowired
     private PreviousYearsCourseLoader previousYearsCourseLoader;
 
@@ -82,9 +92,12 @@ public class RecsysDataLoaderApp {
     public void loadData() throws IOException {
 
         try {
-            
+            loadSupportedCourseCredit();
+
+            loadSupportedCourseLevel();
+
             loadComputingDomainTaxonomyData();
-            
+
             loadPreviousTaughtCourses();
 
             loadFuturePlannedCourse();
@@ -94,9 +107,25 @@ public class RecsysDataLoaderApp {
             loadCourseNormalizationRefData();
 
             loadNormalizedCourseSelectionData();
-            
+
         } catch (DatabaseAccessException | DataSourceFileAccessException ex) {
             java.util.logging.Logger.getLogger(RecsysDataLoaderApp.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void loadSupportedCourseCredit() {
+        LOGGER.info("Loading supported course credit!");
+
+        for (CourseCredit credit : CourseCredit.values()) {
+            this.supportedCourseCreditRepository.save(new SupportedCourseCredit((double) credit.getCredit()));
+        }
+    }
+
+    private void loadSupportedCourseLevel() {
+        LOGGER.info("Loading supported course level!");
+
+        for (CourseLevel level : CourseLevel.values()) {
+            this.supportedCourseLevelRepository.save(new SupportedCourseLevel(level.getDBString()));
         }
 
     }
@@ -106,10 +135,10 @@ public class RecsysDataLoaderApp {
 
         this.futurePlannedCourseLoader.loadToDB();
     }
-    
-    private void loadPreviousTaughtCourses() throws DatabaseAccessException, DataSourceFileAccessException{
+
+    private void loadPreviousTaughtCourses() throws DatabaseAccessException, DataSourceFileAccessException {
         LOGGER.info("Loading previously taught courses!");
-        
+
         this.previousYearsCourseLoader.loadToDB();
     }
 
@@ -121,7 +150,7 @@ public class RecsysDataLoaderApp {
 
     private void loadOriginalCourseSelectionData() throws DataSourceFileAccessException {
         LOGGER.info("Loading course selection data from previous years!");
-        
+
         this.originalCourseSelectionLoader.loadToDB();
 
     }

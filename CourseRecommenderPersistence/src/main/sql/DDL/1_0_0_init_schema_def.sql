@@ -17,7 +17,8 @@
 -- limitations under the License.
 -- #L%
 ---
-DROP DATABASE uu_cs_course_recommender;
+
+-- DROP DATABASE uu_cs_course_recommender;
 
 CREATE DATABASE IF NOT EXISTS uu_cs_course_recommender;
 

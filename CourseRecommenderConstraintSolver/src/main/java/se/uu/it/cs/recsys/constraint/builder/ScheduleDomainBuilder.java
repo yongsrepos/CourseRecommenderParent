@@ -34,12 +34,10 @@ package se.uu.it.cs.recsys.constraint.builder;
  * limitations under the License.
  * #L%
  */
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jacop.set.core.SetDomain;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -61,25 +59,22 @@ public class ScheduleDomainBuilder {
      * 2 respectively.
      *
      * @param interestedCourseIdSet
+     * @param periodsInfo
      * @return SetDomain for the 6 study periods
      */
-    public Map<Integer, SetDomain> createScheduleSetDomainsFor(Set<Integer> interestedCourseIdSet) {
+    public Map<Integer, SetDomain> createScheduleSetDomainsFor(Set<Integer> interestedCourseIdSet, Set<CourseSchedule> periodsInfo) {
 
-        Map<Integer, SetDomain> periodIdAndFilteredCourseIdSetDomain = new HashMap<>();
+        return getStartPeriodAndIdSetMapping(periodsInfo).entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                                entry -> {
+                                    Set<Integer> planedCourseIdSet = entry.getValue();
 
-        Map<Integer, Set<Integer>> periodIdAndCourseIds = getStartPeriodAndIdSetMapping();
+                                    planedCourseIdSet.retainAll(interestedCourseIdSet);//get intersection
 
-        periodIdAndCourseIds.entrySet().stream().forEach(entry -> {
-            Set<Integer> planedCourseIdSet = entry.getValue();
-            
-            planedCourseIdSet.retainAll(interestedCourseIdSet);//get intersection
-
-            SetDomain domain = DomainBuilder.createDomain(planedCourseIdSet);
-
-            periodIdAndFilteredCourseIdSetDomain.put(entry.getKey(), domain);
-        });
-
-        return periodIdAndFilteredCourseIdSetDomain;
+                                    return planedCourseIdSet.isEmpty() ? SetDomain.emptyDomain
+                                            : DomainBuilder.createDomain(planedCourseIdSet);
+                                }));
     }
 
     /**
@@ -88,11 +83,11 @@ public class ScheduleDomainBuilder {
      *
      * @return SetDomain for the 6 study periods
      */
-    public Map<Integer, SetDomain> createScheduleSetDomains() {
+    public Map<Integer, SetDomain> createScheduleSetDomains(Set<CourseSchedule> periodsInfo) {
 
         Map<Integer, SetDomain> periodIdAndScheduleSetDomain = new HashMap<>();
 
-        Map<Integer, Set<Integer>> periodIdAndCourseIds = getStartPeriodAndIdSetMapping();
+        Map<Integer, Set<Integer>> periodIdAndCourseIds = getStartPeriodAndIdSetMapping(periodsInfo);
 
         periodIdAndCourseIds.entrySet().stream().forEach(
                 entry -> {
@@ -109,31 +104,19 @@ public class ScheduleDomainBuilder {
      * For period 1 to 6. Periods 5, 6 are considered to have same domain as 1,
      * 2 respectively.
      *
+     * @param periodsInfo
      * @return
      */
-    public Map<Integer, Set<Integer>> getStartPeriodAndIdSetMapping() {
+    public Map<Integer, Set<Integer>> getStartPeriodAndIdSetMapping(Set<CourseSchedule> periodsInfo) {
 
-        Map<Integer, Set<Integer>> scheduledIntIds = new HashMap<>();
 
-        CourseSchedule year2015p1 = new CourseSchedule((short) 2015, (short) 1);
-        CourseSchedule year2015p2 = new CourseSchedule((short) 2015, (short) 2);
-        CourseSchedule year2016p3 = new CourseSchedule((short) 2016, (short) 3);
-        CourseSchedule year2016p4 = new CourseSchedule((short) 2016, (short) 4);
-
-        Set<CourseSchedule> schedules = Stream.of(year2015p1, year2015p2, year2016p3, year2016p4)
-                .collect(Collectors.toSet());
-
-        Map<CourseSchedule, Set<Integer>> scheduleToCourseIdMapping
-                = getTaughtYearAndStartPeriodToIdMapping(schedules);
-
-        scheduledIntIds.put(1, scheduleToCourseIdMapping.get(year2015p1));
-        scheduledIntIds.put(2, scheduleToCourseIdMapping.get(year2015p2));
-        scheduledIntIds.put(3, scheduleToCourseIdMapping.get(year2016p3));
-        scheduledIntIds.put(4, scheduleToCourseIdMapping.get(year2016p4));
-        scheduledIntIds.put(5, scheduleToCourseIdMapping.get(year2015p1));
-        scheduledIntIds.put(6, scheduleToCourseIdMapping.get(year2015p2));
-
-        return scheduledIntIds;
+        return getTaughtYearAndStartPeriodToIdMapping(periodsInfo)
+                .entrySet().stream()
+                .collect(Collectors
+                        .toMap(periodInfo -> {
+                            return (int) periodInfo.getKey().getPeriodIdxAmongAllPlanPeriods();
+                        },
+                        Map.Entry::getValue));
     }
 
     private Map<CourseSchedule, Set<Integer>> getTaughtYearAndStartPeriodToIdMapping(Set<CourseSchedule> schedule) {

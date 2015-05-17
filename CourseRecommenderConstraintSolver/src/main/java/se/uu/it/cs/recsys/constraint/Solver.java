@@ -38,9 +38,8 @@ import org.jacop.search.SimpleSelect;
 import org.jacop.search.SimpleSolutionListener;
 import org.jacop.set.core.SetDomain;
 import org.jacop.set.core.SetVar;
-import org.jacop.set.search.IndomainSetMin;
-import org.jacop.set.search.MaxGlbCard;
-import org.jacop.set.search.MinLubCard;
+import org.jacop.set.search.IndomainSetMax;
+import org.jacop.set.search.MaxCardDiff;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,12 +87,15 @@ public class Solver {
     private final Map<CourseCredit, Set<Integer>> creditToInterestedCourseIds
             = new HashMap<>();
 
-    private final Map<Integer, Set<Integer>> periodOneBasedIdxToMustHaveIdSet
+    private final Map<Integer, Set<Integer>> periodNumToMustHaveIdSet
             = new HashMap<>();
+
+    private final List<Set<Integer>> sameCourseWithDiffIdInPlanYear
+            = new ArrayList<>();
 
     private final Set<CourseSchedule> schedulePeriodsInfo = new HashSet<>();
 
-    public static final int DEFAULT_SUGGESTION_AMOUNT = 5;
+    public static final int DEFAULT_SUGGESTION_AMOUNT = 1;
 
     private int suggestionAmount = DEFAULT_SUGGESTION_AMOUNT;
 
@@ -126,7 +128,7 @@ public class Solver {
     public static final int CREDIT_STEP_AFTER_SCALING = (int) (0.5 * CREDIT_NORMALIZATION_SCALE);
 
     public static final int MIN_COURSE_AMOUNT_PERIOD = 1;
-    public static final int MAX_COURSE_AMOUNT_PERIOD = 3;
+    public static final int MAX_COURSE_AMOUNT_PERIOD = 2;
 
     /**
      *
@@ -159,14 +161,41 @@ public class Solver {
 
         SetVar[] pers = initSetVars(store, this.interestedCourseIdSet);
 
-        boolean isStoreConsistent = postConstraints(store, pers);
-        if (!isStoreConsistent) {
-            LOGGER.debug("No satisfactory solution to CSP!");
-            return Collections.EMPTY_LIST;
-        }
+        postConstraints(store, pers);
 
         return search(store, pers);
+    }
 
+    private void initFields(Set<Integer> argInterestedCourseIdSet) {
+        //1. init interested id set
+        this.interestedCourseIdSet.addAll(argInterestedCourseIdSet);
+
+        //2. init interest course set
+        this.interestedCourses.addAll(this.courseRepository.findByAutoGenIds(this.interestedCourseIdSet));
+
+        //3. categorize course set based on credit
+        CourseFlattener.flattenToCreditAndIdSetMap(this.interestedCourses)
+                .entrySet().stream()
+                .forEach(entry -> {
+                    this.creditToInterestedCourseIds.put(
+                            CourseCredit.ofValue(entry.getKey().getCredit().floatValue()),
+                            entry.getValue());
+                });
+
+        //4. categorize course set based on level
+        CourseFlattener.flattenToLevelAndIdSetMap(this.interestedCourses)
+                .entrySet().stream()
+                .forEach(entry -> {
+                    this.levelToInterestedCourseIds.put(
+                            CourseLevel.ofDBString(entry.getKey().getLevel()),
+                            entry.getValue());
+                });
+
+        //5. num the periods
+        setDefaultPeriodsScheduleInfo();
+
+        //6. set same course with diff codes
+        initSameCourseWithDiffIdInPlanYear();
     }
 
     // 1. Init each period as SetVar
@@ -176,7 +205,7 @@ public class Solver {
         SetVar[] p = new SetVar[6];
 
         Map<Integer, SetDomain> domains = this.scheduleDomainBuilder
-                .createScheduleSetDomainsFor(interestedCourseIdSet);
+                .createScheduleSetDomainsFor(interestedCourseIdSet, this.schedulePeriodsInfo);
 
         for (int i = 0; i <= 5; i++) {
             p[i] = new SetVar(store, "Period_" + (i + 1), domains.get(i + 1));
@@ -185,15 +214,17 @@ public class Solver {
         return p;
     }
 
-    private boolean postConstraints(Store store, SetVar[] pers) {
-        SetVar allCourseIdUnion = ConstraintImposer.getCourseIdUnion(store, pers, this.interestedCourseIdSet);
+    private void postConstraints(Store store, SetVar[] pers) {
+        ConstraintImposer.postEachPeriodCardinalityConst(store, pers);
 
-        return ConstraintImposer.postDisjointConst(store, pers)
-                && ConstraintImposer.postMustHaveElemInSetConst(store, pers, periodOneBasedIdxToMustHaveIdSet)
-                && ConstraintImposer.postAdvancedCreditsConst(store, allCourseIdUnion, getCreditToInterestedAdvancedCourseIdSetMapping())
-                && ConstraintImposer.postTotalCreditsConst(store, allCourseIdUnion, this.creditToInterestedCourseIds)
-                && ConstraintImposer.postEachPeriodCardinalityConst(store, pers)
-                && ConstraintImposer.postEachPeriodCreditConst(store, pers, this.creditToInterestedCourseIds);
+        ConstraintImposer.postMustHaveElemInSetConst(store, pers, periodNumToMustHaveIdSet);
+        SetVar allCourseIdUnion = ConstraintImposer.getCourseIdUnion(store, pers, this.interestedCourseIdSet);
+//
+//        ConstraintImposer.postAdvancedCreditsConst(store, allCourseIdUnion, getCreditToInterestedAdvancedCourseIdSetMapping());
+//        ConstraintImposer.postTotalCreditsConst(store, allCourseIdUnion, this.creditToInterestedCourseIds);
+//        ConstraintImposer.postEachPeriodCreditConst(store, pers, this.creditToInterestedCourseIds);
+
+        ConstraintImposer.postAvoidSameCourseConst(store, allCourseIdUnion, this.sameCourseWithDiffIdInPlanYear);
 
     }
 
@@ -215,6 +246,11 @@ public class Solver {
 
         Domain[][] solutions = doSearch(store, vars);
 
+        if (solutions == null || solutions.length == 0) {
+            LOGGER.debug("No solution found!");
+            return Collections.EMPTY_LIST;
+        }
+
         List<Map<Integer, Set<se.uu.it.cs.recsys.api.type.Course>>> result = new ArrayList<>();
 
         Arrays.stream(solutions)
@@ -230,20 +266,23 @@ public class Solver {
     }
 
     private Domain[][] doSearch(Store store, SetVar[] vars) {
+        LOGGER.debug("Store consistency: {}", store.consistency());
 
         Search<SetVar> search = new DepthFirstSearch<>();
 
         SelectChoicePoint<SetVar> select = new SimpleSelect<>(
                 vars,
-                new MinLubCard<>(),
-                new MaxGlbCard<>(),
-                new IndomainSetMin<>());
+                new MaxCardDiff<>(),
+                new IndomainSetMax<>()
+        );
         search.setSolutionListener(new SimpleSolutionListener<>());
         search.getSolutionListener().setSolutionLimit(this.suggestionAmount);
 
         search.getSolutionListener().recordSolutions(true);
 
         search.labeling(store, select);
+
+        LOGGER.debug("Wrong decisions: {}", search.getWrongDecisions());
 
         return search.getSolutionListener().getSolutions();
     }
@@ -278,10 +317,10 @@ public class Solver {
             int periodIdx = findSchedulePeriodIndex(course.getTaughtYear().shortValue(),
                     course.getStartPeriod().shortValue());
 
-            if (this.periodOneBasedIdxToMustHaveIdSet.containsKey(periodIdx)) {
-                this.periodOneBasedIdxToMustHaveIdSet.get(periodIdx).add(courseEntity.getAutoGenId());
+            if (this.periodNumToMustHaveIdSet.containsKey(periodIdx)) {
+                this.periodNumToMustHaveIdSet.get(periodIdx).add(courseEntity.getAutoGenId());
             } else {
-                this.periodOneBasedIdxToMustHaveIdSet.put(periodIdx,
+                this.periodNumToMustHaveIdSet.put(periodIdx,
                         Stream.of(courseEntity.getAutoGenId()).collect(Collectors.toSet()));
             }
         });
@@ -304,35 +343,7 @@ public class Solver {
             return;
         }
 
-        this.periodOneBasedIdxToMustHaveIdSet.putAll(periodOneBasedIdxToMustHaveIdSet);
-    }
-
-    private void initFields(Set<Integer> argInterestedCourseIdSet) {
-        //1. init interested id set
-        this.interestedCourseIdSet.addAll(argInterestedCourseIdSet);
-
-        //2. init interest course set
-        this.interestedCourses.addAll(this.courseRepository.findByAutoGenIds(this.interestedCourseIdSet));
-
-        //3. categorize course set based on credit
-        CourseFlattener.flattenToCreditAndIdSetMap(this.interestedCourses)
-                .entrySet().stream()
-                .forEach(entry -> {
-                    this.creditToInterestedCourseIds.put(
-                            CourseCredit.ofValue(entry.getKey().getCredit().floatValue()),
-                            entry.getValue());
-                });
-
-        //4. categorize course set based on level
-        CourseFlattener.flattenToLevelAndIdSetMap(this.interestedCourses)
-                .entrySet().stream()
-                .forEach(entry -> {
-                    this.levelToInterestedCourseIds.put(
-                            CourseLevel.ofDBString(entry.getKey().getLevel()),
-                            entry.getValue());
-                });
-
-        setDefaultPeriodsScheduleInfo();
+        this.periodNumToMustHaveIdSet.putAll(periodOneBasedIdxToMustHaveIdSet);
     }
 
     private void setDefaultPeriodsScheduleInfo() {
@@ -348,5 +359,42 @@ public class Solver {
             );
 
         }
+    }
+
+    private List<Set<Integer>> getSameCourseWithDiffCodeInPlanYear() {
+        // for example, course 1DL301 and 1DL300, both are Database Design I
+        Set<Integer> dl300IdSet = this.courseRepository
+                .findByCode("1DL300")
+                .stream()
+                .filter(course -> course.getTaughtYear() >= 2015)
+                .flatMap(course -> Stream.of(course.getAutoGenId()))
+                .collect(Collectors.toSet());
+
+        Set<Integer> dl301IdSet = this.courseRepository
+                .findByCode("1DL301")
+                .stream()
+                .filter(course -> course.getTaughtYear() >= 2015)
+                .flatMap(course -> Stream.of(course.getAutoGenId()))
+                .collect(Collectors.toSet());
+
+        dl300IdSet.addAll(dl301IdSet);
+
+        return Stream.of(dl300IdSet).collect(Collectors.toList());
+    }
+
+    private void initSameCourseWithDiffIdInPlanYear() {
+        this.sameCourseWithDiffIdInPlanYear.addAll(getSameCourseWithDiffCodeInPlanYear());
+
+        List<Course> allCourses = this.courseRepository.findAll();
+        Set<Course> planYearCourseSet = allCourses.stream()
+                .filter(course -> course.getTaughtYear() >= 2015)
+                .collect(Collectors.toSet());
+
+        Map<String, Set<Integer>> codeToIdSet = CourseFlattener.flattenToCodeAndIdSet(planYearCourseSet);
+
+        codeToIdSet.entrySet().stream()
+                .filter(entry -> entry.getValue().size() > 1)
+                .forEach(entry
+                        -> this.sameCourseWithDiffIdInPlanYear.add(entry.getValue()));
     }
 }

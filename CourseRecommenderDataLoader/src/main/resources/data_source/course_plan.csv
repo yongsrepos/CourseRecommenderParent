@@ -75,7 +75,7 @@
 1DL250;avanc;Software engineering, 5 hp;5;10011074;2016;3;3
 1DL400;avanc;Database Design II, 5 hp;5;10003206.10010111;2016;3;3
 1DL420;avanc;Compiler design project, 5 hp;5;10011041;2016;3;3
-1DL550;avanc;Low-level Parallel Programming, 5 hp;5;10003762.10010170.10010169.10010175;2016;3;3
+1DL550;avanc;Low-­level Parallel Programming, 5 hp;5;10003762.10010170.10010169.10010175;2016;3;3
 1DL520;avanc;Compiler Design II, 10 hp;10;10011041;2016;3;4
 1DT024;avanc;Advanced computer architecture, 10 hp;10;10010521.10011062;2016;3;3
 1DT094;grund;Internet of Things, 5 hp;5;10003014.10003034;2016;3;3
@@ -118,3 +118,76 @@
 1TD351;avanc;High performance computing and programming, 5 hp;5;10011674.10010049.10011002.10011103;2016;4;4
 1TD267;avanc;Large Datasets for Scientific Applications, 5 hp;5;10003176.10003100;2016;4;4
 1TD322;avanc;Advanced course on topics in scientific computing I, 5 hp;5;10003705.10003729.10010432.10010444;2016;3;4
+1DT032;avanc;Advanced Computer Science Studies in Sweden, 5 hp;5;;2016;1;1
+1DL210;grund;Algorithms and Data Structures I, 5 hp;5;10003635.10010031.10011254;2016;1;1
+1DL311;grund;Semantics of Programming Languages, 5 hp;5;10010134.10011039;2016;1;1
+1DL301;grund;Database Design I, 5 hp;5;10002955.10002959.10003190.10010822;2016;1;1
+1DL330;avanc;Functional programming I, 5 hp;5;10010127.10011012;2016;1;1
+1DL250;avanc;Software engineering, 5 hp;5;10011074;2016;1;1
+1DL340;avanc;Artificial intelligence, 5 hp;5;10010178;2016;1;1
+1DL441;avanc;Combinatorial Optimisation using Constraint Programming, 10 hp;10;10003795.10011015;2016;1;2
+1DL540;avanc;Language abstractions for concurrent and parallel programming, 10 hp;10;10010169.10010175.10011777.10011778.10011014.10011034;2016;1;2
+1DL560;avanc;Parallel programming for performance, 5 hp;5;10010169.10010175.10011777.10011778.10011014.10011034;2016;1;1
+1DL360;avanc;Data mining I, 5 hp;5;10003351;2016;1;1
+1DL580;avanc;Project in Concurrent and Parallel Programming, 15 hp;15;10010169.10010175.10011777.10011778.10011014.10011034;2016;1;2
+1DT038;grund;Computer architecture I, 5 hp;5;10010521.10011020;2016;1;1
+1DT004;avanc;Real time systems, 10 hp;10;10010570.10011679;2016;1;1
+1DT063;avanc;Real time systems, 5 hp;5;10010570.10011679;2016;1;1
+1DT059;avanc;Model based design of embedded software, 10 hp;10;10010564;2016;1;1
+1DT012;avanc;IT and Society, 15 hp;15;10003490.10011074;2016;1;2
+1DT016;grund;Computer Architecture I, 7.5 hp;7.5;10010521.10011020;2016;1;2
+1DT006;grund;Information Technology, 7.5 hp;7.5;10003456;2016;1;2
+1DT034;avanc;Programming Theory, 10 hp;10;10003456.10003790.10010138;2016;1;2
+1DT054;avanc;Project DV, 30 hp;30;10010972.10011074;2016;1;2
+1DT052;grund;Computer networks I, 5 hp;5;10003034.10003039;2016;1;1
+1DT065;avanc;Project IT, 30 hp;30;10010972.10011074;2016;1;2
+1DT061;avanc;Computing education research, 10 hp;10;10003527.10010489;2016;1;2
+1MD031;grund;Interface Programming with a User Perspective, 5 hp;5;10010865.10003129.10010858.10011052;2016;1;1
+1MD025;avanc;Perception and Visual Design, 5 hp;5;10003145.10010364.10011058.10011069;2016;1;1
+1MD016;grund;Human computer interaction, 5 hp;5;10003121;2016;1;1
+1MD017;avanc;IT systems and human factors, 5 hp;5;10010217.10010484;2016;1;1
+1RT605;avanc;Spectral processing of signals, 5 hp;5;10003247.10010767;2016;1;1
+1TD389;avanc;Scientific visualization, 5 hp;5;10003145.10010364.10011058.10011069;2016;1;1
+1TD397;avanc;Scientific Computing III, 5 hp;5;10003705.10003729;2016;1;1
+1TD322;avanc;Advanced course on topics in scientific computing I, 5 hp;5;10003705.10003729.10010432.10010444;2016;1;1
+1TD248;avanc;Applied scientific computing, 5 hp;5;10003705.10003729.10010432.10010444;2016;1;1
+1TD326;avanc;Advanced Course on Topics in Scientific Computing II, 10 hp;10;10003705.10003729.10010432.10010444;2016;1;2
+1TD186;avanc;Computational Finance - Pricing and Valuation, 5 hp;5;10003677.10003682.10010460;2016;1;1
+1TD046;avanc;Programming, bridging course, 10 hp;10;10011008.10011075;2016;1;2
+1TD243;avanc;Analysis of numerical methods, 5 hp;5;10003715.10003729;2016;1;1
+1TD045;avanc;Scientific Computing, Bridging Course, 5 hp;5;10003677.10003682.10003728;2016;1;1
+1TD395;grund;Scientific Computing II, 5 hp;5;10003677.10003682.10003728;2016;1;1
+1DL450;avanc;Advanced functional programming, 5 hp;5;10011012;2016;2;2
+1DL441;avanc;Combinatorial Optimisation using Constraint Programming, 10 hp;10;10003795.10011015;2016;1;2
+1DL600;avanc;Software Testing and Maintenance, 10 hp;10;10011103.10011109;2016;2;3
+1DL231;grund;Algorithms and data structures II, 5 hp;5;10003756.10003635.10011258;2016;2;2
+1DL321;grund;Compiler Design I, 5 hp;5;10011041;2016;2;2
+1DL540;avanc;Language abstractions for concurrent and parallel programming, 10 hp;10;10003762.10010170.10010169.10011777.10011778.10011014.10011034;2016;1;2
+1DL241;avanc;Advanced Software Design, 5 hp;5;10011061.10011075;2016;2;2
+1DL301;grund;Database Design I, 5 hp;5;10002955.10002959.10003190.10010822;2016;2;2
+1DL400;avanc;Database Design II, 5 hp;5;10003206.10010111;2016;2;2
+1DL449;avanc;Constraint Modelling for Combinatorial Optimisation, 5 hp;5;10003795.10011015;2016;2;2
+1DL580;avanc;Project in Concurrent and Parallel Programming, 15 hp;15;10010169.10010175.10011777.10011778.10011014.10011034;2016;1;2
+1DT012;avanc;IT and Society, 15 hp;15;10003490.10011074;2016;1;2
+1DT016;grund;Computer Architecture I, 7.5 hp;7.5;10010521.10011020;2016;1;2
+1DT077;avanc;Wireless communication and networked embedded systems, 10 hp;10;10003238.10003119.10010562.10010564.10011669.10011670.10010606;2016;2;3
+1DT006;grund;Information Technology, 7.5 hp;7.5;10003456;2016;1;2
+1DT072;avanc;Secure computer systems I, 5 hp;5;10002978;2016;2;2
+1DT095;avanc;Wireless Communication and Networked Embedded Systems, 5 hp;5;10003238.10003119.10010562.10010564.10011669.10011670.10010606;2016;2;2
+1DT034;avanc;Programming Theory, 10 hp;10;10003456.10003790.10010138;2016;1;2
+1DT074;avanc;Computer networks II, 10 hp;10;10003033;2016;2;3
+1DT054;avanc;Project DV, 30 hp;30;10010972.10011074;2016;1;2
+1DT065;avanc;Project IT, 30 hp;30;10010972.10011074;2016;1;2
+1DT061;avanc;Computing education research, 10 hp;10;10003527.10010489;2016;1;2
+1MD016;grund;Human computer interaction, 5 hp;5;10003121;2016;2;2
+1MD027;avanc;Universal Design and Evaluation, 15 hp;15;10003120;2016;2;2
+1MD020;avanc;Advanced visual interfaces, 5 hp;5;10010239.10010392;2016;2;2
+1RT490;grund;Automatic control I, 5 hp;5;10003728;2016;2;2
+1TD326;avanc;Advanced Course on Topics in Scientific Computing II, 10 hp;10;10003705.10003729.10010432.10010444;2016;1;2
+1TD046;avanc;Programming, bridging course, 10 hp;10;10011008.10011075;2016;1;2
+1TD253;avanc;Finite element methods, 5 hp;5;10003729;2016;2;2
+1TD396;avanc;Computer assisted image analysis I, 5 hp;5;10010241.10010382;2016;2;2
+1TD184;avanc;Optimization, 5 hp;5;10003716.10010241.10010382;2016;2;2
+1DL600;avanc;Software Testing and Maintenance, 10 hp;10;10011103.10011109;2016;2;3
+1DT077;avanc;Wireless communication and networked embedded systems, 10 hp;10;10003238.10003119.10010562.10010564.10011669.10011670.10010606;2016;2;3
+1DT074;avanc;Computer networks II, 10 hp;10;10003033;2016;2;3

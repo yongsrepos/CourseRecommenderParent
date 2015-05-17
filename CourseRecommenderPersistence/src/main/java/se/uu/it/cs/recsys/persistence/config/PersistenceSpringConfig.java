@@ -1,4 +1,3 @@
-
 package se.uu.it.cs.recsys.persistence.config;
 
 /*
@@ -20,14 +19,13 @@ package se.uu.it.cs.recsys.persistence.config;
  * limitations under the License.
  * #L%
  */
-
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
+import org.apache.tomcat.jdbc.pool.PoolProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -36,15 +34,15 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
- * Spring-Data-JPA config file for this module. When using this
- * module, import this config class in your Application config class and also
- * provide application.properties, such as
+ * Spring-Data-JPA config file for this module. When using this module, import
+ * this config class in your Application config class and also provide
+ * application.properties, such as
  * <pre>
- \@Import(PersistenceSpringConfig.class)
- </pre>
+ * \@Import(PersistenceSpringConfig.class)
+ * </pre>
+ *
  * @author Yong Huang &lt;yong.e.huang@gmail.com&gt;
  */
-
 @Configuration
 @ComponentScan(basePackages = {"se.uu.it.cs.recsys.persistence"})
 @EnableTransactionManagement(proxyTargetClass = true)
@@ -52,16 +50,28 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 //@PropertySource("classpath:application.properties")
 //@Import(SpringJpaRepositoryConfig.class)
 public class PersistenceSpringConfig {
-     @Bean
+
+    @Bean
     public DataSource dataSource() {
-        DriverManagerDataSource ds = new DriverManagerDataSource();
-        
-        ds.setDriverClassName("com.mysql.jdbc.Driver");
-        ds.setUsername("root");
-        ds.setPassword("password");
-        ds.setUrl("jdbc:mysql://localhost:3306/uu_cs_course_recommender");
-        
-        return ds;
+        PoolProperties poolProperties = new PoolProperties();
+
+        poolProperties.setUrl("jdbc:mysql://localhost:3306/uu_cs_course_recommender");
+        poolProperties.setDriverClassName("com.mysql.jdbc.Driver");
+        poolProperties.setUsername("root");
+        poolProperties.setPassword("password");
+        poolProperties.setJmxEnabled(true);
+        poolProperties.setMaxActive(500);
+        poolProperties.setLogAbandoned(true);
+
+        DataSource tomcatDS = new org.apache.tomcat.jdbc.pool.DataSource(poolProperties);
+
+//        DriverManagerDataSource ds = new DriverManagerDataSource();
+//        tomcatDS.setDriverClassName("com.mysql.jdbc.Driver");
+//        ds.setUsername("root");
+//        ds.setPassword("password");
+//        ds.setUrl();
+//        
+        return tomcatDS;
     }
 
     @Bean
@@ -74,7 +84,7 @@ public class PersistenceSpringConfig {
         HibernateJpaVendorAdapter jpaVendorAdapter = new HibernateJpaVendorAdapter();
         jpaVendorAdapter.setDatabase(Database.MYSQL);
         jpaVendorAdapter.setGenerateDdl(true);
-        
+
         return jpaVendorAdapter;
     }
 
