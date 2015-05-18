@@ -1,4 +1,4 @@
-package se.uu.it.cs.recsys.constraint;
+package se.uu.it.cs.recsys.constraint.api;
 
 /*
  * #%L
@@ -78,6 +78,7 @@ public class SolverApp {
                             LOGGER.info("Period {}, courses:", period.getKey());
                             period.getValue().forEach(course -> LOGGER.info("{}", course));
                         });
+                        LOGGER.info("\n");
                     }
             );
         }

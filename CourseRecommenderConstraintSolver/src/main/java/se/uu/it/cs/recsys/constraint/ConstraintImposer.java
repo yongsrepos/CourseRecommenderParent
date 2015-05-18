@@ -20,6 +20,7 @@ package se.uu.it.cs.recsys.constraint;
  * #L%
  */
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,79 +42,22 @@ import org.jacop.set.core.SetDomain;
 import org.jacop.set.core.SetVar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 import se.uu.it.cs.recsys.api.type.CourseCredit;
-import static se.uu.it.cs.recsys.constraint.Solver.MAX_COURSE_AMOUNT_PERIOD;
-import static se.uu.it.cs.recsys.constraint.Solver.MIN_COURSE_AMOUNT_PERIOD;
+import se.uu.it.cs.recsys.constraint.api.Solver;
+import static se.uu.it.cs.recsys.constraint.api.Solver.MAX_COURSE_AMOUNT_PERIOD;
+import static se.uu.it.cs.recsys.constraint.api.Solver.MIN_COURSE_AMOUNT_PERIOD;
 import se.uu.it.cs.recsys.constraint.builder.DomainBuilder;
+import se.uu.it.cs.recsys.constraint.constraints.TotalCreditsConstraint;
 
 /**
  *
  * @author Yong Huang &lt;yong.e.huang@gmail.com>&gt;
  */
-@Component
-class ConstraintImposer {
+public class ConstraintImposer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConstraintImposer.class);
 
-    // 2. Post disjoint const between P1 and P5, P2 and P6
-//    public static boolean postDisjointConst(Store store, SetVar[] vars) {
-//        LOGGER.debug("Posting disjoint constraint for 1st <=> 5th, 2nd <=> 6th periods.");
-//
-//        AdisjointB disjoint1 = new AdisjointB(vars[0], vars[4]);
-//        AdisjointB disjoint2 = new AdisjointB(vars[1], vars[5]);
-//
-//        store.impose(disjoint1);
-//        store.impose(disjoint2);
-//
-//        LOGGER.debug("After posting constraint, is store still consistent? {}", store.consistency());
-//
-//        return store.consistency();
-//    }
-    public static void postTotalCreditsConst(Store store,
-            SetVar allIdUnion, Map<CourseCredit, Set<Integer>> creditToInterestedCourseIds) {
 
-        LOGGER.debug("Posting constraints on total credits!");
-
-        Map<CourseCredit, SetVar> creditToAllIdUnionSetVar
-                = getIntersection(store, allIdUnion, creditToInterestedCourseIds);
-
-        Map<CourseCredit, Integer> creditToScaledUpperLimit
-                = getCreditToScaledUpperLimit(creditToInterestedCourseIds);
-
-        IntVar totalCredits
-                = getTotalScaledCreditsForAllPeriods(store,
-                        creditToAllIdUnionSetVar,
-                        creditToScaledUpperLimit);
-
-        XgteqC minCreditsConst
-                = new XgteqC(totalCredits,
-                        Solver.MIN_ALL_PERIODS_CREDIT * Solver.CREDIT_NORMALIZATION_SCALE);
-
-        store.impose(minCreditsConst);
-
-        XlteqC maxCreditsConst
-                = new XlteqC(totalCredits,
-                        Solver.MAX_ALL_PERIODS_CREDIT * Solver.CREDIT_NORMALIZATION_SCALE);
-        store.impose(maxCreditsConst);
-    }
-
-    public static void postMustHaveElemInSetConst(Store store,
-            SetVar[] periodVars,
-            Map<Integer, Set<Integer>> periodToMustHaveElem) {
-
-        LOGGER.debug("Posting constraints on fixed selection!");
-
-        periodToMustHaveElem.entrySet().forEach(period -> {
-            SetVar periodVar = periodVars[period.getKey() - 1];
-
-            period.getValue().forEach(courseId -> {
-                EinA elemInSetConst = new EinA(courseId, periodVar);
-                store.impose(elemInSetConst);
-
-            });
-        });
-    }
 
     public static void postAdvancedCreditsConst(Store store, SetVar allIdUnion,
             Map<CourseCredit, Set<Integer>> creditToInterestedAdvancedCourseIdSetMapping) {
@@ -136,16 +80,6 @@ class ConstraintImposer {
                 Solver.MIN_ADVANCED_CREDIT * Solver.CREDIT_NORMALIZATION_SCALE);
     }
 
-    // 3. Cardinality const on each period [1, 3]
-    public static void postEachPeriodCardinalityConst(Store store, SetVar[] vars) {
-
-        LOGGER.debug("Posting cardinality constraint for each study period.");
-
-        for (SetVar var : vars) {
-            CardA cardConstraint = new CardA(var, MIN_COURSE_AMOUNT_PERIOD, MAX_COURSE_AMOUNT_PERIOD);
-            store.impose(cardConstraint);
-        }
-    }
 
     public static void postEachPeriodCreditConst(Store store,
             SetVar[] periodVars,
@@ -199,25 +133,6 @@ class ConstraintImposer {
         store.impose(thresholdConst);
     }
 
-    public static SetVar getCourseIdUnion(Store store,
-            SetVar[] periodCourseIdVars,
-            Set<Integer> allInterestedCourseIds) {
-
-        SetVar union = periodCourseIdVars[0];
-
-        for (int i = 1; i < periodCourseIdVars.length; i++) {
-            SetVar partUnion = new SetVar(store, "union_" + i,
-                    DomainBuilder.createDomain(allInterestedCourseIds));
-
-            store.impose(new AunionBeqC(union, periodCourseIdVars[i], partUnion));
-            store.impose(new CardA(union, 0, Solver.MAX_COURSE_AMOUNT_PERIOD * Solver.TOTAL_PLAN_PERIODS));
-
-            union = partUnion;
-            i++;
-        }
-
-        return union;
-    }
 
     public static Map<CourseCredit, SetVar> getIntersection(Store store,
             SetVar candidate,
@@ -304,42 +219,6 @@ class ConstraintImposer {
                                 }));
     }
 
-    private static IntVar getTotalScaledCreditsForAllPeriods(Store store,
-            Map<CourseCredit, SetVar> creditToAllIdUnionSetVar,
-            Map<CourseCredit, Integer> creditToScaledUpperLimit) {
-
-        List<IntVar> creditsList = creditToAllIdUnionSetVar.entrySet()
-                .stream().map(entry -> {
-                    Interval singleCreditsDomainInterval
-                    = new Interval(0,
-                            creditToScaledUpperLimit.get(entry.getKey()));
-
-                    IntDomain singleCreditsDomain
-                    = DomainBuilder.createIntDomain(singleCreditsDomainInterval,
-                            Solver.CREDIT_STEP_AFTER_SCALING);
-
-                    return getScaledCredits(store,
-                            entry.getKey(),
-                            entry.getValue(),
-                            singleCreditsDomain);
-                })
-                .collect(Collectors.toList());
-
-        ArrayList<IntVar> creditsArrayList = new ArrayList<>(creditsList);
-
-        Interval totalCreditsInterval
-                = new Interval(
-                        Solver.MIN_ALL_PERIODS_CREDIT * Solver.CREDIT_NORMALIZATION_SCALE,
-                        Solver.MAX_ALL_PERIODS_CREDIT * Solver.CREDIT_NORMALIZATION_SCALE);
-
-        IntVar totalCreditsVar = new IntVar(store,
-                DomainBuilder.createIntDomain(totalCreditsInterval, Solver.CREDIT_STEP_AFTER_SCALING));
-
-        store.impose(new Sum(creditsArrayList, totalCreditsVar));
-
-        return totalCreditsVar;
-
-    }
 
     private static IntVar getTotalScaledCreditsForAllAdvancedCourses(Store store,
             Map<CourseCredit, SetVar> creditToAllAdvancedCourseIdSetVar,
@@ -356,7 +235,7 @@ class ConstraintImposer {
                             singleCreditsDomainInterval,
                             Solver.CREDIT_STEP_AFTER_SCALING);
 
-                    return getScaledCredits(store,
+                    return TotalCreditsConstraint.getScaledCredits(store,
                             entry.getKey(),
                             entry.getValue(),
                             singleCreditsDomain);
@@ -398,7 +277,7 @@ class ConstraintImposer {
                             singleCreditsDomainInterval,
                             Solver.CREDIT_STEP_AFTER_SCALING);
 
-                    return getScaledCredits(store,
+                    return TotalCreditsConstraint.getScaledCredits(store,
                             entry.getKey(),
                             entry.getValue(),
                             singleCreditsDomain);
@@ -426,54 +305,5 @@ class ConstraintImposer {
 
     }
 
-    /**
-     *
-     * @param store
-     * @param idSetVar
-     * @param sharedCreditByAllIdFromTheSet
-     * @param creditsDomain
-     * @return Card(idSetVar) * credit
-     */
-    private static IntVar getScaledCredits(Store store,
-            CourseCredit sharedCreditByAllIdFromTheSet,
-            SetVar idSetVar,
-            IntDomain creditsDomain) {
 
-        IntVar card = new IntVar(store, idSetVar.dom().card());
-
-        int scaledUnitCredit = (int) (sharedCreditByAllIdFromTheSet.getCredit()
-                * Solver.CREDIT_NORMALIZATION_SCALE);
-
-        IntVar credits = new IntVar(store, creditsDomain);
-
-        store.impose(new XmulCeqZ(card, scaledUnitCredit, credits));
-
-        return credits;
-    }
-
-    public static void postAvoidSameCourseConst(Store store, SetVar unionVar, List<Set<Integer>> idSetForSameCourse) {
-
-        LOGGER.info("Posting constraints to avoid seleting same course!");
-
-        idSetForSameCourse.forEach(idSet -> {
-
-            SetVar var = new SetVar(store, DomainBuilder.createDomain(idSet));
-
-            SetDomain intersectionDom
-                    = new BoundSetDomain(IntDomain.emptyIntDomain, var.dom().lub());
-
-            SetVar intersectVar = new SetVar(store, intersectionDom);
-
-            AintersectBeqC intersectConst
-                    = new AintersectBeqC(unionVar, var, intersectVar);
-
-            LOGGER.debug("Imposing intersect const: {}", intersectConst);
-            store.impose(intersectConst);
-
-            CardA cardConst = new CardA(intersectVar, 0, 1);
-            LOGGER.debug("Imposing intersection card const: {}", cardConst);
-            store.impose(cardConst);
-
-        });
-    }
 }

@@ -1,4 +1,4 @@
-package se.uu.it.cs.recsys.constraint;
+package se.uu.it.cs.recsys.constraint.api;
 
 /*
  * #%L
@@ -47,7 +47,13 @@ import org.springframework.stereotype.Service;
 import se.uu.it.cs.recsys.api.type.CourseCredit;
 import se.uu.it.cs.recsys.api.type.CourseLevel;
 import se.uu.it.cs.recsys.api.type.CourseSchedule;
+import se.uu.it.cs.recsys.constraint.ConstraintImposer;
 import se.uu.it.cs.recsys.constraint.builder.ScheduleDomainBuilder;
+import se.uu.it.cs.recsys.constraint.constraints.AllPeriodsCourseIdUnionConstraint;
+import se.uu.it.cs.recsys.constraint.constraints.AvoidSameCourseConstraint;
+import se.uu.it.cs.recsys.constraint.constraints.CourseCardinalityConstraint;
+import se.uu.it.cs.recsys.constraint.constraints.FixedCourseSelectionConstraint;
+import se.uu.it.cs.recsys.constraint.constraints.TotalCreditsConstraint;
 import se.uu.it.cs.recsys.constraint.util.ConstraintResultConverter;
 import se.uu.it.cs.recsys.persistence.entity.Course;
 import se.uu.it.cs.recsys.persistence.repository.CourseRepository;
@@ -128,7 +134,7 @@ public class Solver {
     public static final int CREDIT_STEP_AFTER_SCALING = (int) (0.5 * CREDIT_NORMALIZATION_SCALE);
 
     public static final int MIN_COURSE_AMOUNT_PERIOD = 1;
-    public static final int MAX_COURSE_AMOUNT_PERIOD = 2;
+    public static final int MAX_COURSE_AMOUNT_PERIOD = 4;
 
     /**
      *
@@ -215,16 +221,16 @@ public class Solver {
     }
 
     private void postConstraints(Store store, SetVar[] pers) {
-        ConstraintImposer.postEachPeriodCardinalityConst(store, pers);
+        CourseCardinalityConstraint.impose(store, pers);
 
-        ConstraintImposer.postMustHaveElemInSetConst(store, pers, periodNumToMustHaveIdSet);
-        SetVar allCourseIdUnion = ConstraintImposer.getCourseIdUnion(store, pers, this.interestedCourseIdSet);
-//
-//        ConstraintImposer.postAdvancedCreditsConst(store, allCourseIdUnion, getCreditToInterestedAdvancedCourseIdSetMapping());
-//        ConstraintImposer.postTotalCreditsConst(store, allCourseIdUnion, this.creditToInterestedCourseIds);
-//        ConstraintImposer.postEachPeriodCreditConst(store, pers, this.creditToInterestedCourseIds);
+        FixedCourseSelectionConstraint.impose(store, pers, periodNumToMustHaveIdSet);
+        SetVar allCourseIdUnion = AllPeriodsCourseIdUnionConstraint.imposeAndGetUnion(store, pers, this.interestedCourseIdSet);
 
-        ConstraintImposer.postAvoidSameCourseConst(store, allCourseIdUnion, this.sameCourseWithDiffIdInPlanYear);
+        ConstraintImposer.postAdvancedCreditsConst(store, allCourseIdUnion, getCreditToInterestedAdvancedCourseIdSetMapping());
+        TotalCreditsConstraint.impose(store, allCourseIdUnion, this.creditToInterestedCourseIds);
+        ConstraintImposer.postEachPeriodCreditConst(store, pers, this.creditToInterestedCourseIds);
+
+        AvoidSameCourseConstraint.impose(store, allCourseIdUnion, this.sameCourseWithDiffIdInPlanYear);
 
     }
 
@@ -266,7 +272,7 @@ public class Solver {
     }
 
     private Domain[][] doSearch(Store store, SetVar[] vars) {
-        LOGGER.debug("Store consistency: {}", store.consistency());
+        LOGGER.debug("Store constraints num: {}, consistency: {}", store.numberConstraints(), store.consistency());
 
         Search<SetVar> search = new DepthFirstSearch<>();
 
@@ -395,6 +401,9 @@ public class Solver {
         codeToIdSet.entrySet().stream()
                 .filter(entry -> entry.getValue().size() > 1)
                 .forEach(entry
-                        -> this.sameCourseWithDiffIdInPlanYear.add(entry.getValue()));
+                        -> {
+                    LOGGER.debug("code: {}, idSet {}", entry.getKey(), entry.getValue());
+                    this.sameCourseWithDiffIdInPlanYear.add(entry.getValue());
+                });
     }
 }

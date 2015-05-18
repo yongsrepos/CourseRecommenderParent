@@ -109,7 +109,6 @@ public class ScheduleDomainBuilder {
      */
     public Map<Integer, Set<Integer>> getStartPeriodAndIdSetMapping(Set<CourseSchedule> periodsInfo) {
 
-
         return getTaughtYearAndStartPeriodToIdMapping(periodsInfo)
                 .entrySet().stream()
                 .collect(Collectors

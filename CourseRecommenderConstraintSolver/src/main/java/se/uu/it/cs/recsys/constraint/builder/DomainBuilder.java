@@ -44,6 +44,7 @@ import org.jacop.core.Interval;
 import org.jacop.core.IntervalDomain;
 import org.jacop.core.SmallDenseDomain;
 import org.jacop.set.core.BoundSetDomain;
+import org.jacop.set.core.SetDomain;
 
 /**
  *
@@ -58,7 +59,7 @@ public class DomainBuilder {
      * @return a domain with elements.
      * @throws IllegalArgumentException if input is null or empty
      */
-    public static BoundSetDomain createDomain(Set<Integer> elements) {
+    public static SetDomain createDomain(Set<Integer> elements) {
         if (elements == null || elements.isEmpty()) {
             throw new IllegalArgumentException("Requires non-empty input!");
         }
@@ -66,29 +67,29 @@ public class DomainBuilder {
         List<Integer> elemts = new ArrayList<>(elements);
         Collections.sort(elemts);
 
-        BoundSetDomain domain = new BoundSetDomain();
+        IntDomain lub = new IntervalDomain();
 
-        elemts.forEach((i) -> {
-            domain.addDom(createSingleElementDomain(i));
-        });
+        for (int i : elements) {
+            lub = lub.union(i);
+        }
 
-        return domain;
+        return new BoundSetDomain(IntDomain.emptyIntDomain, lub);
     }
-    
-    public static IntDomain createIntDomain(Set<Integer> elements){
-         if (elements == null || elements.isEmpty()) {
+
+    public static IntDomain createIntDomain(Set<Integer> elements) {
+        if (elements == null || elements.isEmpty()) {
             throw new IllegalArgumentException("Requires non-empty input!");
         }
-         
-         List<Integer> elemts = new ArrayList<>(elements);
+
+        List<Integer> elemts = new ArrayList<>(elements);
         Collections.sort(elemts);
-        
+
         IntDomain result = new IntervalDomain();
-        
-        for(Integer elem:elemts){
+
+        for (Integer elem : elemts) {
             result = result.union(elem);
         }
-        
+
         return result;
     }
 
@@ -102,7 +103,7 @@ public class DomainBuilder {
      * {@link BoundDomain}
      */
     public static IntDomain createIntDomain(Interval interval, int step) {
-        
+
         IntDomain result = new IntervalDomain();
 
         for (int i = interval.min(); i <= interval.max();) {
@@ -115,17 +116,5 @@ public class DomainBuilder {
         }
 
         return result;
-    }
-
-
-    /**
-     *
-     * @param i the single element
-     * @return instance of {@link SmallDenseDomain} containing only one element
-     */
-    public static SmallDenseDomain createSingleElementDomain(int i) {
-        SmallDenseDomain intDomain = new SmallDenseDomain();
-        intDomain.unionAdapt(i);
-        return intDomain;
     }
 }
