@@ -21,22 +21,16 @@ package se.uu.it.cs.recsys.constraint.constraints;
  */
 
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import org.jacop.constraints.Sum;
-import org.jacop.core.IntDomain;
+import org.jacop.constraints.XlteqC;
 import org.jacop.core.IntVar;
-import org.jacop.core.SmallDenseDomain;
 import org.jacop.core.Store;
-import org.jacop.set.constraints.AintersectBeqC;
 import org.jacop.set.constraints.CardA;
-import org.jacop.set.constraints.CardAeqX;
-import org.jacop.set.core.BoundSetDomain;
-import org.jacop.set.core.SetDomain;
 import org.jacop.set.core.SetVar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import se.uu.it.cs.recsys.constraint.util.Util;
 
 /**
  *
@@ -55,49 +49,16 @@ public class AvoidSameCourseConstraint {
     public static void impose(Store store, SetVar unionVar, List<Set<Integer>> idSetForSameCourse) {
         LOGGER.info("Posting constraints to avoid seleting same course!");
         
-        store.impose(new CardA(unionVar, 1, unionVar.dom().lub().getSize()));
+        final int minUnionVarCard = 1;
+        store.impose(new CardA(unionVar, minUnionVarCard, unionVar.dom().lub().getSize()));
         
         idSetForSameCourse
                 .forEach((Set<Integer> idSet) -> {
-                    LOGGER.debug("Id set {}", idSet);
-
-                    ArrayList<IntVar> cardVarList = new ArrayList<>();
-
-                    idSet.forEach((Integer id) -> {
-
-                        IntDomain intDomain = new SmallDenseDomain();
-
-                        IntDomain glb = intDomain.union(id);
-                        IntDomain lub = intDomain.union(id);
-
-                        BoundSetDomain setDomain = new BoundSetDomain(glb, lub);
-
-                        SetVar singleIdVar = new SetVar(store, setDomain);
-
-                        SetDomain intersectionDom 
-                                = new BoundSetDomain(IntDomain.emptyIntDomain, 
-                                        singleIdVar.dom().lub());
-
-                        SetVar intersectVar = new SetVar(store, intersectionDom);
-
-                        AintersectBeqC intersectConst 
-                                = new AintersectBeqC(unionVar, 
-                                        singleIdVar, 
-                                        intersectVar);
-                        store.impose(intersectConst);
-
-                        IntVar cardVar = new IntVar(store, 0, 1);
-                        CardAeqX cardConst = new CardAeqX(intersectVar, cardVar);
-                        store.impose(cardConst);
-
-                        cardVarList.add(cardVar);
-                    });
-
-                    IntVar totalCardForSameCourse = new IntVar(store, 0, 1);
-
-                    Sum cardSumConst = new Sum(cardVarList, totalCardForSameCourse);
-
-                    store.impose(cardSumConst);
+                    
+                    IntVar intersectionCardVar = Util.getIntersectionCardVar(store, unionVar, idSet);
+                    
+                    final int maxIntersectionCard = 1;
+                    store.impose(new XlteqC(intersectionCardVar, maxIntersectionCard));
                 });
     }
 

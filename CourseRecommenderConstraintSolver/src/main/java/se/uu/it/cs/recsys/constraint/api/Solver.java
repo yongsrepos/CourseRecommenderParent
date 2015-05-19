@@ -22,8 +22,6 @@ package se.uu.it.cs.recsys.constraint.api;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,20 +42,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import se.uu.it.cs.recsys.api.type.CourseCredit;
-import se.uu.it.cs.recsys.api.type.CourseLevel;
 import se.uu.it.cs.recsys.api.type.CourseSchedule;
-import se.uu.it.cs.recsys.constraint.ConstraintImposer;
 import se.uu.it.cs.recsys.constraint.builder.ScheduleDomainBuilder;
-import se.uu.it.cs.recsys.constraint.constraints.AllPeriodsCourseIdUnionConstraint;
-import se.uu.it.cs.recsys.constraint.constraints.AvoidSameCourseConstraint;
-import se.uu.it.cs.recsys.constraint.constraints.CourseCardinalityConstraint;
-import se.uu.it.cs.recsys.constraint.constraints.FixedCourseSelectionConstraint;
-import se.uu.it.cs.recsys.constraint.constraints.TotalCreditsConstraint;
 import se.uu.it.cs.recsys.constraint.util.ConstraintResultConverter;
-import se.uu.it.cs.recsys.persistence.entity.Course;
 import se.uu.it.cs.recsys.persistence.repository.CourseRepository;
-import se.uu.it.cs.recsys.persistence.util.CourseFlattener;
 
 /**
  *
@@ -65,44 +53,13 @@ import se.uu.it.cs.recsys.persistence.util.CourseFlattener;
  */
 @Service
 public class Solver {
-    /*
-     * <pre>
-     * 1. SetDomains, d1...d6
-     * 2. SetVars p1...p6
-     * 3. p1 -> d1; p5 -> d1
-     * 4. p1 disjoint p5
-     * 5. Card(pi) [1, 3]
-     * 6. Credit(pi) [10, 25]
-     * 7. Semester credit [27.5, 35]
-     * 9. Credit(all) >= 90
-     * 10. SetDomain advance: D(advanced)
-     * 11. SetDomain basic: D(basic)
-     * 12. Credit(advanced) >= 60
-     * </pre>
-     */
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Solver.class);
-
-    private final Set<Integer> interestedCourseIdSet = new HashSet<>();
-
-    private final Set<Course> interestedCourses = new HashSet<>();
-
-    private final Map<CourseLevel, Set<Integer>> levelToInterestedCourseIds
-            = new HashMap<>();
-
-    private final Map<CourseCredit, Set<Integer>> creditToInterestedCourseIds
-            = new HashMap<>();
-
-    private final Map<Integer, Set<Integer>> periodNumToMustHaveIdSet
-            = new HashMap<>();
-
-    private final List<Set<Integer>> sameCourseWithDiffIdInPlanYear
-            = new ArrayList<>();
-
-    private final Set<CourseSchedule> schedulePeriodsInfo = new HashSet<>();
-
-    public static final int DEFAULT_SUGGESTION_AMOUNT = 1;
-
+ 
+    public static final int TOTAL_PLAN_PERIODS = 6;
+    
+    public static final int DEFAULT_SUGGESTION_AMOUNT = 3;
+    
     private int suggestionAmount = DEFAULT_SUGGESTION_AMOUNT;
 
     @Autowired
@@ -114,15 +71,8 @@ public class Solver {
     @Autowired
     private ConstraintResultConverter resultConverter;
 
-    public static final int TOTAL_PLAN_PERIODS = 6;
-
-    public static final int MIN_PERIOD_CREDIT = 10;
-    public static final int MAX_PERIOD_CREDIT = 30;
-    public static final int MIN_SEMESTER_CREDIT = 28;
-    public static final int MAX_SEMESTER_CREDIT = 35;
-    public static final int MIN_ADVANCED_CREDIT = 60;
-    public static final int MIN_ALL_PERIODS_CREDIT = 90;
-    public static final int MAX_ALL_PERIODS_CREDIT = MAX_PERIOD_CREDIT * TOTAL_PLAN_PERIODS;
+    @Autowired
+    private Modeler modeler;
 
     /**
      * This value is use to multiply the original credit value, so that it can
@@ -132,9 +82,6 @@ public class Solver {
     public static final int CREDIT_NORMALIZATION_SCALE = 10;
 
     public static final int CREDIT_STEP_AFTER_SCALING = (int) (0.5 * CREDIT_NORMALIZATION_SCALE);
-
-    public static final int MIN_COURSE_AMOUNT_PERIOD = 1;
-    public static final int MAX_COURSE_AMOUNT_PERIOD = 4;
 
     /**
      *
@@ -161,47 +108,15 @@ public class Solver {
             throw new IllegalArgumentException("Input must be non-empty!");
         }
 
-        initFields(argInterestedCourseIdSet);
-
+//        initFields(argInterestedCourseIdSet);
         Store store = new Store();
 
-        SetVar[] pers = initSetVars(store, this.interestedCourseIdSet);
+        SetVar[] pers = initSetVars(store, argInterestedCourseIdSet);
 
-        postConstraints(store, pers);
+        this.modeler.setScheduleInfo(getDefaultPeriodsScheduleInfo());
+        this.modeler.postConstraints(store, pers, argInterestedCourseIdSet);
 
         return search(store, pers);
-    }
-
-    private void initFields(Set<Integer> argInterestedCourseIdSet) {
-        //1. init interested id set
-        this.interestedCourseIdSet.addAll(argInterestedCourseIdSet);
-
-        //2. init interest course set
-        this.interestedCourses.addAll(this.courseRepository.findByAutoGenIds(this.interestedCourseIdSet));
-
-        //3. categorize course set based on credit
-        CourseFlattener.flattenToCreditAndIdSetMap(this.interestedCourses)
-                .entrySet().stream()
-                .forEach(entry -> {
-                    this.creditToInterestedCourseIds.put(
-                            CourseCredit.ofValue(entry.getKey().getCredit().floatValue()),
-                            entry.getValue());
-                });
-
-        //4. categorize course set based on level
-        CourseFlattener.flattenToLevelAndIdSetMap(this.interestedCourses)
-                .entrySet().stream()
-                .forEach(entry -> {
-                    this.levelToInterestedCourseIds.put(
-                            CourseLevel.ofDBString(entry.getKey().getLevel()),
-                            entry.getValue());
-                });
-
-        //5. num the periods
-        setDefaultPeriodsScheduleInfo();
-
-        //6. set same course with diff codes
-        initSameCourseWithDiffIdInPlanYear();
     }
 
     // 1. Init each period as SetVar
@@ -211,7 +126,9 @@ public class Solver {
         SetVar[] p = new SetVar[6];
 
         Map<Integer, SetDomain> domains = this.scheduleDomainBuilder
-                .createScheduleSetDomainsFor(interestedCourseIdSet, this.schedulePeriodsInfo);
+                .createScheduleSetDomainsFor(
+                        interestedCourseIdSet,
+                        getDefaultPeriodsScheduleInfo());
 
         for (int i = 0; i <= 5; i++) {
             p[i] = new SetVar(store, "Period_" + (i + 1), domains.get(i + 1));
@@ -220,31 +137,14 @@ public class Solver {
         return p;
     }
 
-    private void postConstraints(Store store, SetVar[] pers) {
-        CourseCardinalityConstraint.impose(store, pers);
-
-        FixedCourseSelectionConstraint.impose(store, pers, periodNumToMustHaveIdSet);
-        SetVar allCourseIdUnion = AllPeriodsCourseIdUnionConstraint.imposeAndGetUnion(store, pers, this.interestedCourseIdSet);
-
-        ConstraintImposer.postAdvancedCreditsConst(store, allCourseIdUnion, getCreditToInterestedAdvancedCourseIdSetMapping());
-        TotalCreditsConstraint.impose(store, allCourseIdUnion, this.creditToInterestedCourseIds);
-        ConstraintImposer.postEachPeriodCreditConst(store, pers, this.creditToInterestedCourseIds);
-
-        AvoidSameCourseConstraint.impose(store, allCourseIdUnion, this.sameCourseWithDiffIdInPlanYear);
-
-    }
-
-    private Map<CourseCredit, Set<Integer>> getCreditToInterestedAdvancedCourseIdSetMapping() {
-        Set<Course> interestedAdvancedCourseSet = this.interestedCourses.stream()
-                .filter(course -> course.getLevel().getLevel()
-                        .equals(CourseLevel.ADVANCED.getDBString()))
+    public static Set<CourseSchedule> getDefaultPeriodsScheduleInfo() {
+        return Stream.of(new CourseSchedule((short) 2015, (short) 1, (short) 1),
+                new CourseSchedule((short) 2015, (short) 2, (short) 2),
+                new CourseSchedule((short) 2016, (short) 3, (short) 3),
+                new CourseSchedule((short) 2016, (short) 4, (short) 4),
+                new CourseSchedule((short) 2016, (short) 1, (short) 5),
+                new CourseSchedule((short) 2016, (short) 2, (short) 6))
                 .collect(Collectors.toSet());
-
-        return CourseFlattener.flattenToCreditAndIdSetMap(interestedAdvancedCourseSet)
-                .entrySet().stream()
-                .collect(Collectors.toMap(entry -> {
-                    return CourseCredit.ofValue(entry.getKey().getCredit().floatValue());
-                }, Map.Entry::getValue));
     }
 
     private List<Map<Integer, Set<se.uu.it.cs.recsys.api.type.Course>>> search(Store store, SetVar[] vars) {
@@ -315,95 +215,13 @@ public class Solver {
             LOGGER.info("No mandatory selection set.");
             return;
         }
-        mandatoryCourseSet.forEach(course -> {
-            Course courseEntity = this.courseRepository.findByCodeAndTaughtYearAndStartPeriod(course.getCode(),
-                    course.getTaughtYear().shortValue(),
-                    course.getStartPeriod().shortValue());
 
-            int periodIdx = findSchedulePeriodIndex(course.getTaughtYear().shortValue(),
-                    course.getStartPeriod().shortValue());
-
-            if (this.periodNumToMustHaveIdSet.containsKey(periodIdx)) {
-                this.periodNumToMustHaveIdSet.get(periodIdx).add(courseEntity.getAutoGenId());
-            } else {
-                this.periodNumToMustHaveIdSet.put(periodIdx,
-                        Stream.of(courseEntity.getAutoGenId()).collect(Collectors.toSet()));
-            }
-        });
-
-    }
-
-    private int findSchedulePeriodIndex(short taughtYear, short startPeriod) {
-        for (CourseSchedule schedule : this.schedulePeriodsInfo) {
-            if (schedule.getTaughtYear() == taughtYear && schedule.getStartPeriod() == startPeriod) {
-                return schedule.getPeriodIdxAmongAllPlanPeriods();
-            }
-        }
-
-        throw new IllegalStateException("Has not schedule info for taught year " + taughtYear + ", start period " + startPeriod);
+        this.modeler.addMandatoryCourse(mandatoryCourseSet);
     }
 
     public void addMandatoryPlan(Map<Integer, Set<Integer>> periodOneBasedIdxToMustHaveIdSet) {
-        if (periodOneBasedIdxToMustHaveIdSet == null || periodOneBasedIdxToMustHaveIdSet.isEmpty()) {
-            LOGGER.info("No mandatory selection set.");
-            return;
-        }
 
-        this.periodNumToMustHaveIdSet.putAll(periodOneBasedIdxToMustHaveIdSet);
-    }
+        this.modeler.addMandatoryPlan(periodOneBasedIdxToMustHaveIdSet);
 
-    private void setDefaultPeriodsScheduleInfo() {
-        if (this.schedulePeriodsInfo.isEmpty()) {
-            this.schedulePeriodsInfo.addAll(
-                    Stream.of(new CourseSchedule((short) 2015, (short) 1, (short) 1),
-                            new CourseSchedule((short) 2015, (short) 2, (short) 2),
-                            new CourseSchedule((short) 2016, (short) 3, (short) 3),
-                            new CourseSchedule((short) 2016, (short) 4, (short) 4),
-                            new CourseSchedule((short) 2016, (short) 1, (short) 5),
-                            new CourseSchedule((short) 2016, (short) 2, (short) 6))
-                    .collect(Collectors.toSet())
-            );
-
-        }
-    }
-
-    private List<Set<Integer>> getSameCourseWithDiffCodeInPlanYear() {
-        // for example, course 1DL301 and 1DL300, both are Database Design I
-        Set<Integer> dl300IdSet = this.courseRepository
-                .findByCode("1DL300")
-                .stream()
-                .filter(course -> course.getTaughtYear() >= 2015)
-                .flatMap(course -> Stream.of(course.getAutoGenId()))
-                .collect(Collectors.toSet());
-
-        Set<Integer> dl301IdSet = this.courseRepository
-                .findByCode("1DL301")
-                .stream()
-                .filter(course -> course.getTaughtYear() >= 2015)
-                .flatMap(course -> Stream.of(course.getAutoGenId()))
-                .collect(Collectors.toSet());
-
-        dl300IdSet.addAll(dl301IdSet);
-
-        return Stream.of(dl300IdSet).collect(Collectors.toList());
-    }
-
-    private void initSameCourseWithDiffIdInPlanYear() {
-        this.sameCourseWithDiffIdInPlanYear.addAll(getSameCourseWithDiffCodeInPlanYear());
-
-        List<Course> allCourses = this.courseRepository.findAll();
-        Set<Course> planYearCourseSet = allCourses.stream()
-                .filter(course -> course.getTaughtYear() >= 2015)
-                .collect(Collectors.toSet());
-
-        Map<String, Set<Integer>> codeToIdSet = CourseFlattener.flattenToCodeAndIdSet(planYearCourseSet);
-
-        codeToIdSet.entrySet().stream()
-                .filter(entry -> entry.getValue().size() > 1)
-                .forEach(entry
-                        -> {
-                    LOGGER.debug("code: {}, idSet {}", entry.getKey(), entry.getValue());
-                    this.sameCourseWithDiffIdInPlanYear.add(entry.getValue());
-                });
     }
 }

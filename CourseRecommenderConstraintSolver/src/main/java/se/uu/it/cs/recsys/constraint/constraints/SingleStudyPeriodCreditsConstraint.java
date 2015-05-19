@@ -19,7 +19,10 @@ package se.uu.it.cs.recsys.constraint.constraints;
  * limitations under the License.
  * #L%
  */
+
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 import org.jacop.constraints.Sum;
@@ -30,36 +33,52 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.uu.it.cs.recsys.api.type.CourseCredit;
 import se.uu.it.cs.recsys.constraint.api.Solver;
-import se.uu.it.cs.recsys.constraint.api.TotalCreditsConstraintConfig;
+import static se.uu.it.cs.recsys.constraint.constraints.AbstractCreditsConstraint.getScaledCredits;
 import se.uu.it.cs.recsys.constraint.util.Util;
 
 /**
  *
  * @author Yong Huang &lt;yong.e.huang@gmail.com>&gt;
  */
-public class TotalCreditsConstraint extends AbstractCreditsConstraint {
+public class SingleStudyPeriodCreditsConstraint extends AbstractCreditsConstraint {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TotalCreditsConstraint.class);
+    public static final int MIN_PERIOD_CREDIT = 10;
+    public static final int MAX_PERIOD_CREDIT = 30;
 
-    public static void impose(Store store,
-            SetVar allPeriodsUnion,
-            Map<CourseCredit, Set<Integer>> creditToInterestedCourseIds,
-            TotalCreditsConstraintConfig config) {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SingleStudyPeriodCreditsConstraint.class);
 
-        LOGGER.debug("Posting constraints on total credits!");
+    public static void impose(Store store, SetVar[] periodVars, Map<CourseCredit, Set<Integer>> creditToInterestedCourseIds) {
+
+        LOGGER.debug("Posting constraints on single study period credits!");
+
+        Arrays.stream(periodVars)
+                .forEach(periodVar -> {
+
+                    imposeForSinglePeriod(store, periodVar, creditToInterestedCourseIds);
+
+                });
+    }
+
+    private static void imposeForSinglePeriod(Store store, SetVar singlePeriodVar, Map<CourseCredit, Set<Integer>> creditToInterestedCourseIds) {
 
         ArrayList<IntVar> creditVarListForEachCreditType = new ArrayList<>();
 
-        creditToInterestedCourseIds.forEach((credit, idSet) -> {
-            IntVar intersectionCardVar = Util.getIntersectionCardVar(store, allPeriodsUnion, idSet);
-            IntVar creditsForCurrentCreditType = getScaledCredits(store, credit, intersectionCardVar);
+        creditToInterestedCourseIds.forEach((credit, idSetOnSameCredit) -> {
+            IntVar intersectionCardVar = Util.getIntersectionCardVar(store,
+                    singlePeriodVar, idSetOnSameCredit);
+
+            IntVar creditsForCurrentCreditType = getScaledCredits(store,
+                    credit, intersectionCardVar);
+
             creditVarListForEachCreditType.add(creditsForCurrentCreditType);
         });
 
         IntVar totalCredits = new IntVar(store,
-                config.getMinTotalCredits() * Solver.CREDIT_NORMALIZATION_SCALE,
-                config.getMaxTotalCredits() * Solver.CREDIT_NORMALIZATION_SCALE);
+                MIN_PERIOD_CREDIT * Solver.CREDIT_NORMALIZATION_SCALE,
+                MAX_PERIOD_CREDIT * Solver.CREDIT_NORMALIZATION_SCALE);
 
         store.impose(new Sum(creditVarListForEachCreditType, totalCredits));
+
     }
+
 }

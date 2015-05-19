@@ -19,6 +19,8 @@ package se.uu.it.cs.recsys.constraint.constraints;
  * limitations under the License.
  * #L%
  */
+
+
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
@@ -29,37 +31,43 @@ import org.jacop.set.core.SetVar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.uu.it.cs.recsys.api.type.CourseCredit;
+import se.uu.it.cs.recsys.constraint.api.AdvancedCreditsConstraintConfig;
 import se.uu.it.cs.recsys.constraint.api.Solver;
-import se.uu.it.cs.recsys.constraint.api.TotalCreditsConstraintConfig;
+import static se.uu.it.cs.recsys.constraint.constraints.AbstractCreditsConstraint.getScaledCredits;
 import se.uu.it.cs.recsys.constraint.util.Util;
 
 /**
  *
  * @author Yong Huang &lt;yong.e.huang@gmail.com>&gt;
  */
-public class TotalCreditsConstraint extends AbstractCreditsConstraint {
+public class AdvancedCreditsConstraint extends AbstractCreditsConstraint {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TotalCreditsConstraint.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedCreditsConstraint.class);
 
     public static void impose(Store store,
             SetVar allPeriodsUnion,
-            Map<CourseCredit, Set<Integer>> creditToInterestedCourseIds,
-            TotalCreditsConstraintConfig config) {
+            Map<CourseCredit, Set<Integer>> creditToInterestedAdvancedCourseIds,
+            AdvancedCreditsConstraintConfig config) {
 
-        LOGGER.debug("Posting constraints on total credits!");
+        LOGGER.debug("Posting constraints on total advanced credits!");
 
         ArrayList<IntVar> creditVarListForEachCreditType = new ArrayList<>();
 
-        creditToInterestedCourseIds.forEach((credit, idSet) -> {
-            IntVar intersectionCardVar = Util.getIntersectionCardVar(store, allPeriodsUnion, idSet);
-            IntVar creditsForCurrentCreditType = getScaledCredits(store, credit, intersectionCardVar);
+        creditToInterestedAdvancedCourseIds.forEach((credit, idSet) -> {
+            IntVar intersectionCardVar
+                    = Util.getIntersectionCardVar(store, allPeriodsUnion, idSet);
+
+            IntVar creditsForCurrentCreditType
+                    = getScaledCredits(store, credit, intersectionCardVar);
+
             creditVarListForEachCreditType.add(creditsForCurrentCreditType);
         });
 
-        IntVar totalCredits = new IntVar(store,
-                config.getMinTotalCredits() * Solver.CREDIT_NORMALIZATION_SCALE,
-                config.getMaxTotalCredits() * Solver.CREDIT_NORMALIZATION_SCALE);
+        IntVar totalAdvancedCredits = new IntVar(store,
+                config.getMinAdvancedCredits() * Solver.CREDIT_NORMALIZATION_SCALE,
+                config.getMaxAdvancedCredits() * Solver.CREDIT_NORMALIZATION_SCALE);
 
-        store.impose(new Sum(creditVarListForEachCreditType, totalCredits));
+        store.impose(new Sum(creditVarListForEachCreditType, totalAdvancedCredits));
     }
+
 }

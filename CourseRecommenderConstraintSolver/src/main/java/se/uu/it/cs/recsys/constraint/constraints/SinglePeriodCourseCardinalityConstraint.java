@@ -19,12 +19,8 @@ package se.uu.it.cs.recsys.constraint.constraints;
  * limitations under the License.
  * #L%
  */
-
-
-import java.util.Map;
-import java.util.Set;
 import org.jacop.core.Store;
-import org.jacop.set.constraints.EinA;
+import org.jacop.set.constraints.CardA;
 import org.jacop.set.core.SetVar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,27 +29,23 @@ import org.slf4j.LoggerFactory;
  *
  * @author Yong Huang &lt;yong.e.huang@gmail.com>&gt;
  */
-public class FixedCourseSelectionConstraint {
+public class SinglePeriodCourseCardinalityConstraint {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FixedCourseSelectionConstraint.class);
+    public static final int MIN_COURSE_AMOUNT_EACH_PERIOD = 1;
+    public static final int MAX_COURSE_AMOUNT_EACH_PERIOD = 3;
 
-    public static void impose(Store store,
-            SetVar[] periodVars,
-            Map<Integer, Set<Integer>> periodNumAndFixedIdSet) {
+    public static final int MIN_TOTAL_COURSE_AMOUNT = 6;
+    public static final int MAX_TOTAL_COURSE_AMOUNT = 15;
 
-        LOGGER.debug("Posting constraints on fixed selection!");
+    private static final Logger LOGGER = LoggerFactory.getLogger(SinglePeriodCourseCardinalityConstraint.class);
 
-        periodNumAndFixedIdSet.entrySet().forEach(
-                (Map.Entry<Integer, Set<Integer>> entry) -> {
+    public static void impose(Store store, SetVar[] periodVars) {
+        LOGGER.debug("Posting cardinality constraint for each single study period.");
 
-                    SetVar periodVar = periodVars[entry.getKey() - 1];
-
-                    entry.getValue().forEach(
-                            (Integer courseId) -> {
-                                EinA elemInSetConst = new EinA(courseId, periodVar);
-                                store.impose(elemInSetConst);
-                            });
-                });
+        for (SetVar var : periodVars) {
+            CardA cardConstraint = new CardA(var, MIN_COURSE_AMOUNT_EACH_PERIOD, MAX_COURSE_AMOUNT_EACH_PERIOD);
+            store.impose(cardConstraint);
+        }
     }
 
 }
