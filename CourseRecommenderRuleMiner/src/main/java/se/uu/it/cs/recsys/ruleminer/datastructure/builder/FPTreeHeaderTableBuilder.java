@@ -34,10 +34,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import se.uu.it.cs.recsys.persistence.repository.CourseSelectionNormalizedRepository;
 import se.uu.it.cs.recsys.ruleminer.datastructure.HeaderTableItem;
 import se.uu.it.cs.recsys.ruleminer.datastructure.Item;
@@ -141,7 +143,7 @@ public class FPTreeHeaderTableBuilder {
             return instance;
         }
 
-        List<Integer> countList = new ArrayList(filteredIdAndCount.values());
+        List<Integer> countList = new ArrayList<>(filteredIdAndCount.values());
         Collections.sort(countList);
         Collections.reverse(countList);// now the count is in DESC order
 

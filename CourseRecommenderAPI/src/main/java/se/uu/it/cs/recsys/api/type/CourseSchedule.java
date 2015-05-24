@@ -1,5 +1,7 @@
 package se.uu.it.cs.recsys.api.type;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 /*
  * #%L
  * CourseRecommenderAPI
@@ -23,6 +25,7 @@ package se.uu.it.cs.recsys.api.type;
  *
  * @author Yong Huang &lt;yong.e.huang@gmail.com&gt;
  */
+@XmlRootElement
 public class CourseSchedule {
 
     private short taughtYear;
@@ -30,6 +33,9 @@ public class CourseSchedule {
     private short endPeriod;
     private short periodIdxAmongAllPlanPeriods;
 
+    private CourseSchedule(){
+        // for jaxb
+    }
     public short getPeriodIdxAmongAllPlanPeriods() {
         return periodIdxAmongAllPlanPeriods;
     }

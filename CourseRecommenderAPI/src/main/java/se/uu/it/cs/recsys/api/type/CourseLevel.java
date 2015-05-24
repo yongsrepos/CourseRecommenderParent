@@ -1,6 +1,10 @@
 
 package se.uu.it.cs.recsys.api.type;
 
+import javax.xml.bind.annotation.XmlEnum;
+import javax.xml.bind.annotation.XmlEnumValue;
+import javax.xml.bind.annotation.XmlType;
+
 /*
  * #%L
  * CourseRecommenderAPI
@@ -25,9 +29,13 @@ package se.uu.it.cs.recsys.api.type;
  *
  * @author Yong Huang &lt;yong.e.huang@gmail.com&gt;
  */
+@XmlType
+@XmlEnum(String.class)
 public enum CourseLevel {
 
-    ADVANCED("avanc"), BASIC("grund");
+    @XmlEnumValue("avanc") ADVANCED("avanc"), 
+    
+    @XmlEnumValue("grund") BASIC("grund");
     private String historyCourseSelString;
 
     CourseLevel(String origStr) {

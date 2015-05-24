@@ -24,6 +24,7 @@ package se.uu.it.cs.recsys.persistence.entity;
 
 import java.io.Serializable;
 import java.util.Collection;
+
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -49,7 +50,7 @@ import javax.xml.bind.annotation.XmlTransient;
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Course.findAll", query = "SELECT c FROM Course c"),
-    @NamedQuery(name = "Course.findAllDistinctAutoGenId", query = "SELECT DISTINCT(autoGenId) FROM Course c"),
+    @NamedQuery(name = "Course.findAllDistinctAutoGenId", query = "SELECT DISTINCT(c.autoGenId) FROM Course c"),
     @NamedQuery(name = "Course.findByAutoGenId", query = "SELECT c FROM Course c WHERE c.autoGenId = :autoGenId"),
     @NamedQuery(name = "Course.findByAutoGenIds", query = "SELECT c FROM Course c WHERE c.autoGenId in :autoGenIds"),
     @NamedQuery(name = "Course.findByCode", query = "SELECT c FROM Course c WHERE c.code = :code"),
@@ -190,27 +191,110 @@ public class Course implements Serializable {
         this.courseSelectionOriginalCollection = courseSelectionOriginalCollection;
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (autoGenId != null ? autoGenId.hashCode() : 0);
-        return hash;
-    }
+    
 
     @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Course)) {
-            return false;
-        }
-        Course other = (Course) object;
-        if ((this.autoGenId == null && other.autoGenId != null) || (this.autoGenId != null && !this.autoGenId.equals(other.autoGenId))) {
-            return false;
-        }
-        return true;
-    }
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((autoGenId == null) ? 0 : autoGenId.hashCode());
+		result = prime * result + ((code == null) ? 0 : code.hashCode());
+		result = prime
+				* result
+				+ ((courseDomainRelevanceCollection == null) ? 0
+						: courseDomainRelevanceCollection.hashCode());
+		result = prime
+				* result
+				+ ((courseSelectionNormalizedCollection == null) ? 0
+						: courseSelectionNormalizedCollection.hashCode());
+		result = prime
+				* result
+				+ ((courseSelectionOriginalCollection == null) ? 0
+						: courseSelectionOriginalCollection.hashCode());
+		result = prime * result + ((credit == null) ? 0 : credit.hashCode());
+		result = prime * result
+				+ ((endPeriod == null) ? 0 : endPeriod.hashCode());
+		result = prime * result + ((level == null) ? 0 : level.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result
+				+ ((startPeriod == null) ? 0 : startPeriod.hashCode());
+		result = prime * result
+				+ ((taughtYear == null) ? 0 : taughtYear.hashCode());
+		return result;
+	}
 
-    @Override
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Course other = (Course) obj;
+		if (autoGenId == null) {
+			if (other.autoGenId != null)
+				return false;
+		} else if (!autoGenId.equals(other.autoGenId))
+			return false;
+		if (code == null) {
+			if (other.code != null)
+				return false;
+		} else if (!code.equals(other.code))
+			return false;
+		if (courseDomainRelevanceCollection == null) {
+			if (other.courseDomainRelevanceCollection != null)
+				return false;
+		} else if (!courseDomainRelevanceCollection
+				.equals(other.courseDomainRelevanceCollection))
+			return false;
+		if (courseSelectionNormalizedCollection == null) {
+			if (other.courseSelectionNormalizedCollection != null)
+				return false;
+		} else if (!courseSelectionNormalizedCollection
+				.equals(other.courseSelectionNormalizedCollection))
+			return false;
+		if (courseSelectionOriginalCollection == null) {
+			if (other.courseSelectionOriginalCollection != null)
+				return false;
+		} else if (!courseSelectionOriginalCollection
+				.equals(other.courseSelectionOriginalCollection))
+			return false;
+		if (credit == null) {
+			if (other.credit != null)
+				return false;
+		} else if (!credit.equals(other.credit))
+			return false;
+		if (endPeriod == null) {
+			if (other.endPeriod != null)
+				return false;
+		} else if (!endPeriod.equals(other.endPeriod))
+			return false;
+		if (level == null) {
+			if (other.level != null)
+				return false;
+		} else if (!level.equals(other.level))
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (startPeriod == null) {
+			if (other.startPeriod != null)
+				return false;
+		} else if (!startPeriod.equals(other.startPeriod))
+			return false;
+		if (taughtYear == null) {
+			if (other.taughtYear != null)
+				return false;
+		} else if (!taughtYear.equals(other.taughtYear))
+			return false;
+		return true;
+	}
+
+	@Override
     public String toString() {
         return "se.uu.it.cs.recsys.persistence.entity.Course[ autoGenId=" + autoGenId + " ]";
     }

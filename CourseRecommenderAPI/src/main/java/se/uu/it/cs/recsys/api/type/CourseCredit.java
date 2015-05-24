@@ -1,5 +1,9 @@
 package se.uu.it.cs.recsys.api.type;
 
+import javax.xml.bind.annotation.XmlEnum;
+import javax.xml.bind.annotation.XmlEnumValue;
+import javax.xml.bind.annotation.XmlType;
+
 /*
  * #%L
  * CourseRecommenderAPI
@@ -23,9 +27,20 @@ package se.uu.it.cs.recsys.api.type;
  *
  * @author Yong Huang &lt;yong.e.huang@gmail.com&gt;
  */
+@XmlType
+@XmlEnum(Double.class)
 public enum CourseCredit {
 
-    FIVE(5.0f), SEVEN_POINT_FIVE(7.5f), TEN(10.0f), FIVETEEN(15.0f), THIRTY(30.0f);
+    @XmlEnumValue("5.0f")
+    FIVE(5.0f),
+    @XmlEnumValue("7.5f")
+    SEVEN_POINT_FIVE(7.5f),
+    @XmlEnumValue("10.0f")
+    TEN(10.0f),
+    @XmlEnumValue("15.0f")
+    FIVETEEN(15.0f),
+    @XmlEnumValue("30.0f")
+    THIRTY(30.0f);
 
     private final float credit;
 
@@ -48,8 +63,8 @@ public enum CourseCredit {
                 matching = courseCredit;
             }
         }
-        
-        if(matching == null){
+
+        if (matching == null) {
             throw new IllegalArgumentException(value + " is not a valid course credit!");
         }
 

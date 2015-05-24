@@ -1,4 +1,3 @@
-
 package se.uu.it.cs.recsys.persistence.entity;
 
 /*
@@ -21,8 +20,8 @@ package se.uu.it.cs.recsys.persistence.entity;
  * #L%
  */
 
-
 import java.io.Serializable;
+
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -33,64 +32,78 @@ import javax.persistence.Embeddable;
  */
 @Embeddable
 public class CourseNormalizationPK implements Serializable {
-    @Basic(optional = false)
-    @Column(name = "from_earlier_code")
-    private String fromEarlierCode;
-    @Basic(optional = false)
-    @Column(name = "to_later_code")
-    private String toLaterCode;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	@Basic(optional = false)
+	@Column(name = "from_earlier_code")
+	private String fromEarlierCode;
+	@Basic(optional = false)
+	@Column(name = "to_later_code")
+	private String toLaterCode;
 
-    public CourseNormalizationPK() {
-    }
+	public CourseNormalizationPK() {
+	}
 
-    public CourseNormalizationPK(String fromEarlierCode, String toLaterCode) {
-        this.fromEarlierCode = fromEarlierCode;
-        this.toLaterCode = toLaterCode;
-    }
+	public CourseNormalizationPK(String fromEarlierCode, String toLaterCode) {
+		this.fromEarlierCode = fromEarlierCode;
+		this.toLaterCode = toLaterCode;
+	}
 
-    public String getFromEarlierCode() {
-        return fromEarlierCode;
-    }
+	public String getFromEarlierCode() {
+		return fromEarlierCode;
+	}
 
-    public void setFromEarlierCode(String fromEarlierCode) {
-        this.fromEarlierCode = fromEarlierCode;
-    }
+	public void setFromEarlierCode(String fromEarlierCode) {
+		this.fromEarlierCode = fromEarlierCode;
+	}
 
-    public String getToLaterCode() {
-        return toLaterCode;
-    }
+	public String getToLaterCode() {
+		return toLaterCode;
+	}
 
-    public void setToLaterCode(String toLaterCode) {
-        this.toLaterCode = toLaterCode;
-    }
+	public void setToLaterCode(String toLaterCode) {
+		this.toLaterCode = toLaterCode;
+	}
 
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (fromEarlierCode != null ? fromEarlierCode.hashCode() : 0);
-        hash += (toLaterCode != null ? toLaterCode.hashCode() : 0);
-        return hash;
-    }
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((fromEarlierCode == null) ? 0 : fromEarlierCode.hashCode());
+		result = prime * result
+				+ ((toLaterCode == null) ? 0 : toLaterCode.hashCode());
+		return result;
+	}
 
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof CourseNormalizationPK)) {
-            return false;
-        }
-        CourseNormalizationPK other = (CourseNormalizationPK) object;
-        if ((this.fromEarlierCode == null && other.fromEarlierCode != null) || (this.fromEarlierCode != null && !this.fromEarlierCode.equals(other.fromEarlierCode))) {
-            return false;
-        }
-        if ((this.toLaterCode == null && other.toLaterCode != null) || (this.toLaterCode != null && !this.toLaterCode.equals(other.toLaterCode))) {
-            return false;
-        }
-        return true;
-    }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		CourseNormalizationPK other = (CourseNormalizationPK) obj;
+		if (fromEarlierCode == null) {
+			if (other.fromEarlierCode != null)
+				return false;
+		} else if (!fromEarlierCode.equals(other.fromEarlierCode))
+			return false;
+		if (toLaterCode == null) {
+			if (other.toLaterCode != null)
+				return false;
+		} else if (!toLaterCode.equals(other.toLaterCode))
+			return false;
+		return true;
+	}
 
-    @Override
-    public String toString() {
-        return "se.uu.it.cs.recsys.persistence.entity.CourseNormalizationPK[ fromEarlierCode=" + fromEarlierCode + ", toLaterCode=" + toLaterCode + " ]";
-    }
-    
+	@Override
+	public String toString() {
+		return "se.uu.it.cs.recsys.persistence.entity.CourseNormalizationPK[ fromEarlierCode="
+				+ fromEarlierCode + ", toLaterCode=" + toLaterCode + " ]";
+	}
+
 }

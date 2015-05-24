@@ -101,7 +101,7 @@ public class LevelDomainBuilder {
     public Map<CourseLevel, Set<Integer>> getLevelAndIdMappingFor(Set<Integer> idSet) {
         if (idSet == null || idSet.isEmpty()) {
             LOGGER.warn("Does not make sense to put null or empty set, right?");
-            return Collections.EMPTY_MAP;
+            return Collections.emptyMap();
         }
         
         Map<CourseLevel, Set<Integer>> levelAndIds = new HashMap<>();

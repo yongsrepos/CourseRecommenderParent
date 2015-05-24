@@ -1,4 +1,3 @@
-
 package se.uu.it.cs.recsys.api.type;
 
 /*
@@ -20,21 +19,27 @@ package se.uu.it.cs.recsys.api.type;
  * limitations under the License.
  * #L%
  */
-
-
 import java.util.Objects;
 import java.util.Optional;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
  * @author Yong Huang &lt;yong.e.huang@gmail.com&gt;
  */
+@XmlRootElement
 public class ComputingDomain {
 
     private String id;
     private Optional<String> name;
 
+    private ComputingDomain() {
+        // for jaxb
+    }
+
     public ComputingDomain(String id) {
+    	this();
+    	
         this.id = id;
         this.name = Optional.empty();
     }

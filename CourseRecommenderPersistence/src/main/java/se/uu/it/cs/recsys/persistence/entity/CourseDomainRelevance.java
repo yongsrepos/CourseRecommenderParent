@@ -1,4 +1,3 @@
-
 package se.uu.it.cs.recsys.persistence.entity;
 
 /*
@@ -21,8 +20,8 @@ package se.uu.it.cs.recsys.persistence.entity;
  * #L%
  */
 
-
 import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
@@ -41,89 +40,121 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Table(name = "course_domain_relevance")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "CourseDomainRelevance.findAll", query = "SELECT c FROM CourseDomainRelevance c"),
-    @NamedQuery(name = "CourseDomainRelevance.findByCourseId", query = "SELECT c FROM CourseDomainRelevance c WHERE c.courseDomainRelevancePK.courseId = :courseId"),
-    @NamedQuery(name = "CourseDomainRelevance.findByDomainId", query = "SELECT c FROM CourseDomainRelevance c WHERE c.courseDomainRelevancePK.domainId = :domainId"),
-    @NamedQuery(name = "CourseDomainRelevance.findByRelevanceLevel", query = "SELECT c FROM CourseDomainRelevance c WHERE c.relevanceLevel = :relevanceLevel")})
+		@NamedQuery(name = "CourseDomainRelevance.findAll", query = "SELECT c FROM CourseDomainRelevance c"),
+		@NamedQuery(name = "CourseDomainRelevance.findByCourseId", query = "SELECT c FROM CourseDomainRelevance c WHERE c.courseDomainRelevancePK.courseId = :courseId"),
+		@NamedQuery(name = "CourseDomainRelevance.findByDomainId", query = "SELECT c FROM CourseDomainRelevance c WHERE c.courseDomainRelevancePK.domainId = :domainId"),
+		@NamedQuery(name = "CourseDomainRelevance.findByRelevanceLevel", query = "SELECT c FROM CourseDomainRelevance c WHERE c.relevanceLevel = :relevanceLevel") })
 public class CourseDomainRelevance implements Serializable {
-    private static final long serialVersionUID = 1L;
-    @EmbeddedId
-    protected CourseDomainRelevancePK courseDomainRelevancePK;
-    @Column(name = "relevance_level")
-    private Short relevanceLevel;
-    @JoinColumn(name = "course_id", referencedColumnName = "auto_gen_id", insertable = false, updatable = false)
-    @ManyToOne(optional = false)
-    private Course course;
-    @JoinColumn(name = "domain_id", referencedColumnName = "id", insertable = false, updatable = false)
-    @ManyToOne(optional = false)
-    private ComputingDomain computingDomain;
+	private static final long serialVersionUID = 1L;
+	@EmbeddedId
+	protected CourseDomainRelevancePK courseDomainRelevancePK;
+	@Column(name = "relevance_level")
+	private Short relevanceLevel;
+	@JoinColumn(name = "course_id", referencedColumnName = "auto_gen_id", insertable = false, updatable = false)
+	@ManyToOne(optional = false)
+	private Course course;
+	@JoinColumn(name = "domain_id", referencedColumnName = "id", insertable = false, updatable = false)
+	@ManyToOne(optional = false)
+	private ComputingDomain computingDomain;
 
-    public CourseDomainRelevance() {
-    }
+	public CourseDomainRelevance() {
+	}
 
-    public CourseDomainRelevance(CourseDomainRelevancePK courseDomainRelevancePK) {
-        this.courseDomainRelevancePK = courseDomainRelevancePK;
-    }
+	public CourseDomainRelevance(CourseDomainRelevancePK courseDomainRelevancePK) {
+		this.courseDomainRelevancePK = courseDomainRelevancePK;
+	}
 
-    public CourseDomainRelevance(int courseId, String domainId) {
-        this.courseDomainRelevancePK = new CourseDomainRelevancePK(courseId, domainId);
-    }
+	public CourseDomainRelevance(int courseId, String domainId) {
+		this.courseDomainRelevancePK = new CourseDomainRelevancePK(courseId,
+				domainId);
+	}
 
-    public CourseDomainRelevancePK getCourseDomainRelevancePK() {
-        return courseDomainRelevancePK;
-    }
+	public CourseDomainRelevancePK getCourseDomainRelevancePK() {
+		return courseDomainRelevancePK;
+	}
 
-    public void setCourseDomainRelevancePK(CourseDomainRelevancePK courseDomainRelevancePK) {
-        this.courseDomainRelevancePK = courseDomainRelevancePK;
-    }
+	public void setCourseDomainRelevancePK(
+			CourseDomainRelevancePK courseDomainRelevancePK) {
+		this.courseDomainRelevancePK = courseDomainRelevancePK;
+	}
 
-    public Short getRelevanceLevel() {
-        return relevanceLevel;
-    }
+	public Short getRelevanceLevel() {
+		return relevanceLevel;
+	}
 
-    public void setRelevanceLevel(Short relevanceLevel) {
-        this.relevanceLevel = relevanceLevel;
-    }
+	public void setRelevanceLevel(Short relevanceLevel) {
+		this.relevanceLevel = relevanceLevel;
+	}
 
-    public Course getCourse() {
-        return course;
-    }
+	public Course getCourse() {
+		return course;
+	}
 
-    public void setCourse(Course course) {
-        this.course = course;
-    }
+	public void setCourse(Course course) {
+		this.course = course;
+	}
 
-    public ComputingDomain getComputingDomain() {
-        return computingDomain;
-    }
+	public ComputingDomain getComputingDomain() {
+		return computingDomain;
+	}
 
-    public void setComputingDomain(ComputingDomain computingDomain) {
-        this.computingDomain = computingDomain;
-    }
+	public void setComputingDomain(ComputingDomain computingDomain) {
+		this.computingDomain = computingDomain;
+	}
 
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (courseDomainRelevancePK != null ? courseDomainRelevancePK.hashCode() : 0);
-        return hash;
-    }
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((computingDomain == null) ? 0 : computingDomain.hashCode());
+		result = prime * result + ((course == null) ? 0 : course.hashCode());
+		result = prime
+				* result
+				+ ((courseDomainRelevancePK == null) ? 0
+						: courseDomainRelevancePK.hashCode());
+		result = prime * result
+				+ ((relevanceLevel == null) ? 0 : relevanceLevel.hashCode());
+		return result;
+	}
 
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof CourseDomainRelevance)) {
-            return false;
-        }
-        CourseDomainRelevance other = (CourseDomainRelevance) object;
-        if ((this.courseDomainRelevancePK == null && other.courseDomainRelevancePK != null) || (this.courseDomainRelevancePK != null && !this.courseDomainRelevancePK.equals(other.courseDomainRelevancePK))) {
-            return false;
-        }
-        return true;
-    }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		CourseDomainRelevance other = (CourseDomainRelevance) obj;
+		if (computingDomain == null) {
+			if (other.computingDomain != null)
+				return false;
+		} else if (!computingDomain.equals(other.computingDomain))
+			return false;
+		if (course == null) {
+			if (other.course != null)
+				return false;
+		} else if (!course.equals(other.course))
+			return false;
+		if (courseDomainRelevancePK == null) {
+			if (other.courseDomainRelevancePK != null)
+				return false;
+		} else if (!courseDomainRelevancePK
+				.equals(other.courseDomainRelevancePK))
+			return false;
+		if (relevanceLevel == null) {
+			if (other.relevanceLevel != null)
+				return false;
+		} else if (!relevanceLevel.equals(other.relevanceLevel))
+			return false;
+		return true;
+	}
 
-    @Override
-    public String toString() {
-        return "se.uu.it.cs.recsys.persistence.entity.CourseDomainRelevance[ courseDomainRelevancePK=" + courseDomainRelevancePK + " ]";
-    }
-    
+	@Override
+	public String toString() {
+		return "se.uu.it.cs.recsys.persistence.entity.CourseDomainRelevance[ courseDomainRelevancePK="
+				+ courseDomainRelevancePK + " ]";
+	}
+
 }

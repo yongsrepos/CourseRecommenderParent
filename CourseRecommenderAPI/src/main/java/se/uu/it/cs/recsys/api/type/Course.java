@@ -1,4 +1,3 @@
-
 package se.uu.it.cs.recsys.api.type;
 
 /*
@@ -20,11 +19,10 @@ package se.uu.it.cs.recsys.api.type;
  * limitations under the License.
  * #L%
  */
-
-
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import javax.xml.bind.annotation.XmlRootElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +30,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author Yong Huang &lt;yong.e.huang@gmail.com&gt;
  */
+@XmlRootElement
 public class Course {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(Course.class);
 
     private String code;
@@ -44,12 +44,12 @@ public class Course {
     private CourseLevel level;
     private final Set<ComputingDomain> relatedDomain = new HashSet<>();
 
-    public CourseLevel getLevel() {
-        return level;
+    private Course() {
+        // no-arg, jaxb
     }
 
-    private Course() {
-        // no-arg
+    public CourseLevel getLevel() {
+        return level;
     }
 
     public String getCode() {

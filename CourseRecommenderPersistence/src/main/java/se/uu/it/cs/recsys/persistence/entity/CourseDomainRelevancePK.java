@@ -1,4 +1,3 @@
-
 package se.uu.it.cs.recsys.persistence.entity;
 
 /*
@@ -21,8 +20,8 @@ package se.uu.it.cs.recsys.persistence.entity;
  * #L%
  */
 
-
 import java.io.Serializable;
+
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -33,64 +32,74 @@ import javax.persistence.Embeddable;
  */
 @Embeddable
 public class CourseDomainRelevancePK implements Serializable {
-    @Basic(optional = false)
-    @Column(name = "course_id")
-    private int courseId;
-    @Basic(optional = false)
-    @Column(name = "domain_id")
-    private String domainId;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	@Basic(optional = false)
+	@Column(name = "course_id")
+	private int courseId;
+	@Basic(optional = false)
+	@Column(name = "domain_id")
+	private String domainId;
 
-    public CourseDomainRelevancePK() {
-    }
+	public CourseDomainRelevancePK() {
+	}
 
-    public CourseDomainRelevancePK(int courseId, String domainId) {
-        this.courseId = courseId;
-        this.domainId = domainId;
-    }
+	public CourseDomainRelevancePK(int courseId, String domainId) {
+		this.courseId = courseId;
+		this.domainId = domainId;
+	}
 
-    public int getCourseId() {
-        return courseId;
-    }
+	public int getCourseId() {
+		return courseId;
+	}
 
-    public void setCourseId(int courseId) {
-        this.courseId = courseId;
-    }
+	public void setCourseId(int courseId) {
+		this.courseId = courseId;
+	}
 
-    public String getDomainId() {
-        return domainId;
-    }
+	public String getDomainId() {
+		return domainId;
+	}
 
-    public void setDomainId(String domainId) {
-        this.domainId = domainId;
-    }
+	public void setDomainId(String domainId) {
+		this.domainId = domainId;
+	}
 
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (int) courseId;
-        hash += (domainId != null ? domainId.hashCode() : 0);
-        return hash;
-    }
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + courseId;
+		result = prime * result
+				+ ((domainId == null) ? 0 : domainId.hashCode());
+		return result;
+	}
 
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof CourseDomainRelevancePK)) {
-            return false;
-        }
-        CourseDomainRelevancePK other = (CourseDomainRelevancePK) object;
-        if (this.courseId != other.courseId) {
-            return false;
-        }
-        if ((this.domainId == null && other.domainId != null) || (this.domainId != null && !this.domainId.equals(other.domainId))) {
-            return false;
-        }
-        return true;
-    }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		CourseDomainRelevancePK other = (CourseDomainRelevancePK) obj;
+		if (courseId != other.courseId)
+			return false;
+		if (domainId == null) {
+			if (other.domainId != null)
+				return false;
+		} else if (!domainId.equals(other.domainId))
+			return false;
+		return true;
+	}
 
-    @Override
-    public String toString() {
-        return "se.uu.it.cs.recsys.persistence.entity.CourseDomainRelevancePK[ courseId=" + courseId + ", domainId=" + domainId + " ]";
-    }
-    
+	@Override
+	public String toString() {
+		return "se.uu.it.cs.recsys.persistence.entity.CourseDomainRelevancePK[ courseId="
+				+ courseId + ", domainId=" + domainId + " ]";
+	}
+
 }

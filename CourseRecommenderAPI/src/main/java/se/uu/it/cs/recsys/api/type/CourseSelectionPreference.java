@@ -1,9 +1,5 @@
 package se.uu.it.cs.recsys.api.type;
 
-import javax.xml.bind.annotation.XmlEnum;
-import javax.xml.bind.annotation.XmlEnumValue;
-import javax.xml.bind.annotation.XmlType;
-
 /*
  * #%L
  * CourseRecommenderAPI
@@ -25,37 +21,16 @@ import javax.xml.bind.annotation.XmlType;
  */
 
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  *
  * @author Yong Huang &lt;yong.e.huang@gmail.com>&gt;
  */
-@XmlType
-@XmlEnum(Integer.class)
-public enum ThesisCredit {
+@XmlRootElement
+public class CourseSelectionPreference {
 
-    @XmlEnumValue("30") THIRTY(30), 
-    @XmlEnumValue("45") FORTY_FIVE(45);
-
-    private final int credit;
-
-    ThesisCredit(int credit) {
-        this.credit = credit;
+    private CourseSelectionPreference() {
+        // for jaxb
     }
-
-    public int getCredit() {
-        return this.credit;
-    }
-
-    public static ThesisCredit ofValue(int argCredit) {
-        switch (argCredit) {
-            case 30:
-                return THIRTY;
-            case 45:
-                return FORTY_FIVE;
-            default:
-                throw new IllegalArgumentException(argCredit
-                        + "is not a valid thesis credit");
-        }
-    }
-
 }

@@ -7,9 +7,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
     
-    <groupId>se.uu.it</groupId>
     <artifactId>CourseRecommenderAPI</artifactId>
-    <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     
 </project>

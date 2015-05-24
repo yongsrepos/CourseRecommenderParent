@@ -26,6 +26,7 @@ import com.google.common.collect.Sets;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.Set;
+import javax.xml.bind.annotation.XmlRootElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Yong Huang &lt;yong.e.huang@gmail.com&gt;
  */
+@XmlRootElement
 public class StudentCourseSelectionHistory implements Serializable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StudentCourseSelectionHistory.class);
@@ -41,7 +43,7 @@ public class StudentCourseSelectionHistory implements Serializable {
     private final Set<Course> courseSet = Sets.newHashSet();
 
     private StudentCourseSelectionHistory() {
-        // no-arg
+        // no-arg, for JAXB
     }
 
     private StudentCourseSelectionHistory(String studentId) {
