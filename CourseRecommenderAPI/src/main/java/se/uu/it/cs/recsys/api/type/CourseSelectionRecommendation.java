@@ -1,9 +1,8 @@
-
-package se.uu.it.cs.recsys.persistence.repository;
+package se.uu.it.cs.recsys.api.type;
 
 /*
  * #%L
- * CourseRecommenderPersistence
+ * CourseRecommenderAPI
  * %%
  * Copyright (C) 2015 Yong Huang  <yong.e.huang@gmail.com >
  * %%
@@ -22,16 +21,10 @@ package se.uu.it.cs.recsys.persistence.repository;
  */
 
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.query.Param;
-import se.uu.it.cs.recsys.persistence.entity.ComputingDomain;
-
 /**
  *
- * @author Yong Huang &lt;yong.e.huang@gmail.com&gt;
+ * @author Yong Huang &lt;yong.e.huang@gmail.com>&gt;
  */
-public interface ComputingDomainRepository extends JpaRepository<ComputingDomain, String> {
+public class CourseSelectionRecommendation {
     
-     public ComputingDomain findById(@Param("id") String id);
-
 }

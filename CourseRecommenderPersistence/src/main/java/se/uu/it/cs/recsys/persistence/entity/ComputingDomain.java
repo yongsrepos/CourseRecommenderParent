@@ -24,11 +24,11 @@ package se.uu.it.cs.recsys.persistence.entity;
 
 import java.io.Serializable;
 import java.util.Collection;
-
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -46,7 +46,8 @@ import javax.xml.bind.annotation.XmlTransient;
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "ComputingDomain.findAll", query = "SELECT c FROM ComputingDomain c"),
-    @NamedQuery(name = "ComputingDomain.findById", query = "SELECT c FROM ComputingDomain c WHERE c.id = :id"),
+    @NamedQuery(name = "ComputingDomain.findById", query = "SELECT c FROM ComputingDomain c "
+            + " LEFT JOIN FETCH c.courseDomainRelevanceCollection WHERE c.id = :id"),
     @NamedQuery(name = "ComputingDomain.findByName", query = "SELECT c FROM ComputingDomain c WHERE c.name = :name")})
 public class ComputingDomain implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -56,7 +57,7 @@ public class ComputingDomain implements Serializable {
     private String id;
     @Column(name = "name")
     private String name;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "computingDomain")
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "computingDomain")
     private Collection<CourseDomainRelevance> courseDomainRelevanceCollection;
 
     public ComputingDomain() {

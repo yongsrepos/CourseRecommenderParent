@@ -21,7 +21,6 @@ package se.uu.it.cs.recsys.constraint.constraints;
  */
 
 
-import java.util.List;
 import java.util.Set;
 import org.jacop.constraints.XlteqC;
 import org.jacop.core.IntVar;
@@ -46,7 +45,7 @@ public class AvoidSameCourseConstraint {
      * @param unionVar, requires Card(unionVar) >= 1 
      * @param idSetForSameCourse 
      */
-    public static void impose(Store store, SetVar unionVar, List<Set<Integer>> idSetForSameCourse) {
+    public static void impose(Store store, SetVar unionVar, Set<Set<Integer>> idSetForSameCourse) {
         LOGGER.info("Posting constraints to avoid seleting same course!");
         
         final int minUnionVarCard = 1;

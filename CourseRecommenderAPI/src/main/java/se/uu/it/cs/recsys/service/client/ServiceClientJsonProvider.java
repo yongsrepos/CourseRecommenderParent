@@ -1,9 +1,12 @@
+package se.uu.it.cs.recsys.service.client;
 
-package se.uu.it.cs.recsys.persistence.repository;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /*
  * #%L
- * CourseRecommenderPersistence
+ * CourseRecommenderAPI
  * %%
  * Copyright (C) 2015 Yong Huang  <yong.e.huang@gmail.com >
  * %%
@@ -20,18 +23,16 @@ package se.uu.it.cs.recsys.persistence.repository;
  * limitations under the License.
  * #L%
  */
-
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.query.Param;
-import se.uu.it.cs.recsys.persistence.entity.ComputingDomain;
-
 /**
  *
- * @author Yong Huang &lt;yong.e.huang@gmail.com&gt;
+ * @author Yong Huang &lt;yong.e.huang@gmail.com>&gt;
  */
-public interface ComputingDomainRepository extends JpaRepository<ComputingDomain, String> {
+public class ServiceClientJsonProvider {
     
-     public ComputingDomain findById(@Param("id") String id);
-
+    public static Set<Class> getDefaultProvider() {
+        return Stream.of(com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider.class,
+                com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider.class)
+                .collect(Collectors.toSet());
+    }
+    
 }

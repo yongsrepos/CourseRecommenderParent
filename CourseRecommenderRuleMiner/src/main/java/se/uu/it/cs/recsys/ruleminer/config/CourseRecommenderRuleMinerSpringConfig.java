@@ -1,4 +1,3 @@
-
 package se.uu.it.cs.recsys.ruleminer.config;
 
 /*
@@ -20,8 +19,15 @@ package se.uu.it.cs.recsys.ruleminer.config;
  * limitations under the License.
  * #L%
  */
-
-
+import com.google.common.cache.CacheBuilder;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.guava.GuavaCache;
+import org.springframework.cache.support.SimpleCacheManager;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -33,7 +39,29 @@ import se.uu.it.cs.recsys.persistence.config.PersistenceSpringConfig;
  */
 @Configuration
 @ComponentScan("se.uu.it.cs.recsys.ruleminer")
-@Import(value={PersistenceSpringConfig.class})
+@Import(value = {PersistenceSpringConfig.class})
+@EnableCaching
 public class CourseRecommenderRuleMinerSpringConfig {
+    
+    @Bean
+    public CacheManager cacheManager() {
+        SimpleCacheManager cacheManager = new SimpleCacheManager();
+        
+        GuavaCache fpTreeCache = new GuavaCache("FPTrees",
+                CacheBuilder.
+                newBuilder().
+                expireAfterWrite(1, TimeUnit.DAYS).
+                maximumSize(100).build());
+        
+        GuavaCache fpPatternCache = new GuavaCache("FPPatterns",
+                CacheBuilder.
+                newBuilder().
+                expireAfterWrite(1, TimeUnit.DAYS).
+                maximumSize(100).build());
+        
+        cacheManager.setCaches(Stream.of(fpTreeCache, fpPatternCache).collect(Collectors.toList()));
+        
+        return cacheManager;
+    }
     
 }

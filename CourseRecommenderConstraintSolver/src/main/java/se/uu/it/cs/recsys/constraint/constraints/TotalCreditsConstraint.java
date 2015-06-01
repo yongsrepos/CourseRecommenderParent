@@ -29,8 +29,8 @@ import org.jacop.set.core.SetVar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.uu.it.cs.recsys.api.type.CourseCredit;
-import se.uu.it.cs.recsys.constraint.api.Solver;
-import se.uu.it.cs.recsys.constraint.api.TotalCreditsConstraintConfig;
+import se.uu.it.cs.recsys.constraint.api.ConstraintSolverPreference;
+import se.uu.it.cs.recsys.constraint.solver.Solver;
 import se.uu.it.cs.recsys.constraint.util.Util;
 
 /**
@@ -44,7 +44,7 @@ public class TotalCreditsConstraint extends AbstractCreditsConstraint {
     public static void impose(Store store,
             SetVar allPeriodsUnion,
             Map<CourseCredit, Set<Integer>> creditToInterestedCourseIds,
-            TotalCreditsConstraintConfig config) {
+            Double maxTotalCredits) {
 
         LOGGER.debug("Posting constraints on total credits!");
 
@@ -57,8 +57,9 @@ public class TotalCreditsConstraint extends AbstractCreditsConstraint {
         });
 
         IntVar totalCredits = new IntVar(store,
-                config.getMinTotalCredits() * Solver.CREDIT_NORMALIZATION_SCALE,
-                config.getMaxTotalCredits() * Solver.CREDIT_NORMALIZATION_SCALE);
+                (int) (ConstraintSolverPreference.MIN_TOTAL_CREDIT
+                * Solver.CREDIT_NORMALIZATION_SCALE),
+                (int) (maxTotalCredits * Solver.CREDIT_NORMALIZATION_SCALE));
 
         store.impose(new Sum(creditVarListForEachCreditType, totalCredits));
     }

@@ -1,4 +1,3 @@
-
 package se.uu.it.cs.recsys.ruleminer.impl;
 
 /*
@@ -20,7 +19,6 @@ package se.uu.it.cs.recsys.ruleminer.impl;
  * limitations under the License.
  * #L%
  */
-
 import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,7 +30,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import se.uu.it.cs.recsys.ruleminer.datastructure.FPTree;
 import se.uu.it.cs.recsys.ruleminer.datastructure.HeaderTableItem;
 import se.uu.it.cs.recsys.ruleminer.datastructure.Item;
@@ -43,7 +41,7 @@ import se.uu.it.cs.recsys.ruleminer.util.Util;
 /**
  * Implement the FP-Growth Algorithm
  */
-@Service
+@Component
 public class FPGrowthImpl {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FPGrowthImpl.class);
@@ -56,11 +54,14 @@ public class FPGrowthImpl {
      *
      *
      * @param fpTree non-null FP Tree
+     * @param argMinSupport
      * @return all the frequent patterns that meets the requirement of the min
      * support
      * @throws IllegalArgumentException, if input is null
      */
-    public Map<Set<Integer>, Integer> getAllFrequentPattern(FPTree fpTree) {
+    public Map<Set<Integer>, Integer> getAllFrequentPattern(FPTree fpTree, Integer argMinSupport) {
+
+        this.minSupport = argMinSupport == null ? DEFAULT_MIN_SUPPORT : argMinSupport;
 
         if (fpTree == null) {
             throw new IllegalArgumentException("Input FP Tree is null!");
@@ -76,7 +77,7 @@ public class FPGrowthImpl {
 
         if (fpTree.hasSinglePrefixPath()) {
             List<Item> singlePrefixPath = fpTree.getSinglePrefixPathInTopDownOrder();
-            LOGGER.debug("Single prefix path: {}", singlePrefixPath);
+//            LOGGER.debug("Single prefix path: {}", singlePrefixPath);
 
             Map<Set<Integer>, Integer> frequentPatternWithinSinglePrefixPath
                     = getFrequentPatternFromSinglePrefixPath(singlePrefixPath);
@@ -110,11 +111,11 @@ public class FPGrowthImpl {
             newPattern.add(visitingItem.getItem().getId());
 
             frequentPatternFromBranchingTree.put(newPattern, visitingItem.getItem().getCount());
-            LOGGER.debug("Adding new pattern: {}, count: {}", newPattern, visitingItem.getItem().getCount());
+//            LOGGER.debug("Adding new pattern: {}, count: {}", newPattern, visitingItem.getItem().getCount());
 
             Map<List<Integer>, Integer> patternBase = FPTreeUtil.getPatternBase(visitingItem);
-            LOGGER.debug("Pattern base for item {} is: {}", visitingItem.getItem(), patternBase);
-            
+//            LOGGER.debug("Pattern base for item {} is: {}", visitingItem.getItem(), patternBase);
+
             FPTree conditionalTree = FPTreeBuilder.buildConditionalFPTree(patternBase, this.minSupport);
 
             if (conditionalTree != null && !conditionalTree.getRoot().getChildren().isEmpty()) {

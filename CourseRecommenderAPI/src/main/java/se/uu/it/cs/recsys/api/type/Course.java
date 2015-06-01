@@ -103,6 +103,34 @@ public class Course {
         return credit;
     }
 
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setTaughtYear(Integer taughtYear) {
+        this.taughtYear = taughtYear;
+    }
+
+    public void setStartPeriod(Integer startPeriod) {
+        this.startPeriod = startPeriod;
+    }
+
+    public void setEndPeriod(Integer endPeriod) {
+        this.endPeriod = endPeriod;
+    }
+
+    public void setCredit(Double credit) {
+        this.credit = credit;
+    }
+
+    public void setLevel(CourseLevel level) {
+        this.level = level;
+    }
+
     @Override
     public int hashCode() {
         int hash = 3;
@@ -222,18 +250,6 @@ public class Course {
 
             if (this.startPeriod == null) {
                 throw new IllegalStateException("Start period is not set!");
-            }
-
-            if (this.endPeriod == null) {
-                throw new IllegalStateException("End period is not set!");
-            }
-
-            if (this.credit == null) {
-                throw new IllegalStateException("Credit is not set!");
-            }
-
-            if (this.level == null) {
-                throw new IllegalStateException("Level is not set!");
             }
 
             Course instance = new Course();

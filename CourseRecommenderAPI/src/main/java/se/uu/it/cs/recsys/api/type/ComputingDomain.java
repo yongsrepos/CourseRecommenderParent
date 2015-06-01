@@ -20,7 +20,6 @@ package se.uu.it.cs.recsys.api.type;
  * #L%
  */
 import java.util.Objects;
-import java.util.Optional;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -31,7 +30,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class ComputingDomain {
 
     private String id;
-    private Optional<String> name;
+    private String name;
 
     private ComputingDomain() {
         // for jaxb
@@ -41,7 +40,7 @@ public class ComputingDomain {
     	this();
     	
         this.id = id;
-        this.name = Optional.empty();
+        this.name = null;
     }
 
     /**
@@ -55,7 +54,7 @@ public class ComputingDomain {
             throw new IllegalArgumentException("Nonsense to call with null or empty string. do you agree?");
         }
         this.id = id;
-        this.name = Optional.of(name);
+        this.name = name;
     }
 
     public String getId() {
@@ -72,14 +71,14 @@ public class ComputingDomain {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Nonsense to call with null or empty string. do you agree?");
         }
-        this.name = Optional.of(name);
+        this.name = name;
     }
 
     /**
      *
-     * @return non-null instance of Optional. May or may not contain value.
+     * @return
      */
-    public Optional<String> getName() {
+    public String getName() {
         return name;
     }
 

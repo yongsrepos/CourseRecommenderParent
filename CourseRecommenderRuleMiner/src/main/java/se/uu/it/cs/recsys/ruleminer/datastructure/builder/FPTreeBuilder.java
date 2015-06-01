@@ -42,7 +42,8 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Component;
 import se.uu.it.cs.recsys.persistence.entity.CourseSelectionNormalized;
 import se.uu.it.cs.recsys.persistence.repository.CourseSelectionNormalizedRepository;
 import se.uu.it.cs.recsys.ruleminer.datastructure.FPTree;
@@ -55,7 +56,7 @@ import se.uu.it.cs.recsys.ruleminer.util.Util;
 /**
  * The builder to build FP Tree from the transaction database.
  */
-@Service
+@Component
 public class FPTreeBuilder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FPTreeBuilder.class);
@@ -112,10 +113,13 @@ public class FPTreeBuilder {
      * @return instance of a FP tree or null if the threshold requirement does
      * not meet.
      */
+    
+    @Cacheable("FPTrees")
     public FPTree buildTreeFromDB(int minSupport) {
         FPTree theTree = new FPTree();
 
-        List<HeaderTableItem> headerTable = this.fPTreeHeaderTableBuilder.buildHeaderTableFromDB(minSupport);
+        List<HeaderTableItem> headerTable = this.fPTreeHeaderTableBuilder
+                .buildHeaderTableFromDB(minSupport);
 
         if (headerTable.isEmpty()) {
             LOGGER.warn("The transaction data does not meet min support to build a FP tree!");
@@ -131,20 +135,22 @@ public class FPTreeBuilder {
         List<Integer> orderedFrequentItemIds = HeaderTableUtil.getOrderedItemId(theTree.getHeaderTable());
 
         int i = 1;
-        final int maxStudentID = this.courseSelectionNormalizedRepository.findMaxCourseSelectionNormalizedPKStudentId();
+        final int maxStudentID = this.courseSelectionNormalizedRepository
+                .findMaxCourseSelectionNormalizedPKStudentId();
 
         while (i <= maxStudentID) {
-            Set<CourseSelectionNormalized> courseSet = this.courseSelectionNormalizedRepository.findByCourseSelectionNormalizedPKStudentId(i);
+            Set<CourseSelectionNormalized> courseSet = this.courseSelectionNormalizedRepository
+                    .findByCourseSelectionNormalizedPKStudentId(i);
 
             List<Integer> attendedCourseIds = courseSet.stream()
                     .map(course -> course.getCourseSelectionNormalizedPK().getNormalizedCourseId())
                     .collect(Collectors.toList());
 
-            LOGGER.debug("Normalized attened courses: {}", attendedCourseIds);
+//            LOGGER.debug("Normalized attened courses: {}", attendedCourseIds);
 
             List<Integer> orderedCourseIds = Util.reorderListAccordingToRef(attendedCourseIds, orderedFrequentItemIds);
 
-            LOGGER.debug("Recordered normalized attened courses: {}", attendedCourseIds);
+//            LOGGER.debug("Recordered normalized attened courses: {}", attendedCourseIds);
 
             insertTransData(theTree.getHeaderTable(),
                     theTree.getRoot(),

@@ -36,7 +36,11 @@ public class AllPeriodsCourseIdUnionConstraint {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AllPeriodsCourseIdUnionConstraint.class);
 
-    public static SetVar imposeAndGetUnion(Store store, SetVar[] periodCourseIdVars, Set<Integer> interestedCourseIdSet) {
+    public static SetVar imposeAndGetUnion(
+            Store store, 
+            SetVar[] periodCourseIdVars, 
+            Set<Integer> interestedCourseIdSet) {
+        
         LOGGER.debug("Posting constraints on the union of all course ids.");
 
         if (periodCourseIdVars == null || periodCourseIdVars.length == 0) {
@@ -48,7 +52,7 @@ public class AllPeriodsCourseIdUnionConstraint {
         
         SetVar union = periodCourseIdVars[0];
 
-        for (int i = 0; i < periodCourseIdVars.length; i++) {
+        for (int i = 1; i < periodCourseIdVars.length; i++) {
             SetVar partUnion
                     = new SetVar(store,
                             "part_union_" + i,
@@ -57,6 +61,7 @@ public class AllPeriodsCourseIdUnionConstraint {
             store.impose(new AunionBeqC(union, periodCourseIdVars[i], partUnion));
             union = partUnion;
         }
+        
         return union;
     }
 

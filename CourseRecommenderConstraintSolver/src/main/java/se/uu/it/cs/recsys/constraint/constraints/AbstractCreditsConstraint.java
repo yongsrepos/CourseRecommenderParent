@@ -19,15 +19,13 @@ package se.uu.it.cs.recsys.constraint.constraints;
  * limitations under the License.
  * #L%
  */
-
-
 import org.jacop.constraints.XmulCeqZ;
 import org.jacop.core.IntDomain;
 import org.jacop.core.IntVar;
 import org.jacop.core.IntervalDomain;
 import org.jacop.core.Store;
 import se.uu.it.cs.recsys.api.type.CourseCredit;
-import se.uu.it.cs.recsys.constraint.api.Solver;
+import se.uu.it.cs.recsys.constraint.solver.Solver;
 
 /**
  *
@@ -35,11 +33,21 @@ import se.uu.it.cs.recsys.constraint.api.Solver;
  */
 public abstract class AbstractCreditsConstraint {
 
+    /**
+     *
+     * @param store
+     * @param sharedCredit
+     * @param setCardVar
+     * @return the total scaled credits as the credits multiply a cardinality
+     * int var
+     */
     public static IntVar getScaledCredits(Store store, CourseCredit sharedCredit, IntVar setCardVar) {
 
         int scaledUnitCredit = (int) (sharedCredit.getCredit() * Solver.CREDIT_NORMALIZATION_SCALE);
 
-        IntDomain domain = new IntervalDomain(0, scaledUnitCredit * setCardVar.max());
+        IntDomain domain = new IntervalDomain(scaledUnitCredit * setCardVar.min(),
+                scaledUnitCredit * setCardVar.max());
+        
         IntVar credits = new IntVar(store, domain);
 
         store.impose(new XmulCeqZ(setCardVar, scaledUnitCredit, credits));

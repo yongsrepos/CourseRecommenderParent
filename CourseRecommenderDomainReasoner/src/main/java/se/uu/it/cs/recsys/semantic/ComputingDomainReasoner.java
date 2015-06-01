@@ -1,4 +1,3 @@
-
 package se.uu.it.cs.recsys.semantic;
 
 /*
@@ -20,14 +19,13 @@ package se.uu.it.cs.recsys.semantic;
  * limitations under the License.
  * #L%
  */
-
-
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -63,7 +61,7 @@ public class ComputingDomainReasoner {
      * @return non-null set
      * @throws java.io.IOException
      */
-    @Cacheable
+    @Cacheable("ComputingDomainCache")
     public Map<String, String> getIdAndLabel() throws IOException {
 
         Query query = SparqlQueryFactory.getIdAndPrefLabelQuery();
@@ -123,7 +121,7 @@ public class ComputingDomainReasoner {
         }
     }
 
-    @Cacheable
+    @Cacheable("ComputingDomainCache")
     private Model getPopulatedModel() throws IOException {
         Model model = ModelFactory.createDefaultModel();
 
@@ -211,15 +209,20 @@ public class ComputingDomainReasoner {
      * directly
      * @see DomainReasoner#getRelatedCourseIds(String)
      */
-//    public Set<String> getRelatedCourseIds(Set<String> domainIds) {
-//	Set<String> r = new HashSet<String>();
-//
-//	for (String id : domainIds) {
-//	    r.addAll(getRelatedCourseIds(id));
-//	}
-//
-//	return r;
-//    }
+    public Set<String> getRelatedCourseIdsForCollection(Set<String> domainIds) {
+        Set<String> r = new HashSet<>();
+
+        domainIds.stream().forEach((id) -> {
+            try {
+                r.addAll(getRelatedDomainIds(id));
+            } catch (IOException ex) {
+                LOGGER.error("Failed querying narrower ids for {}", id, ex);
+            }
+        });
+
+        return r;
+    }
+
     /**
      * The method first get narrower domains ids and then get related course ids
      * to these domain ids
@@ -227,12 +230,16 @@ public class ComputingDomainReasoner {
      * @param domainIds
      * @return
      */
-//    public Set<String> getNarrowerCourseIds(Set<String> domainIds) {
-//	Set<String> r = new HashSet<String>();
-//
-//	for (String id : domainIds) {
-//	    r.addAll(getNarrowerCourseIds(id));
-//	}
-//	return r;
-//    }
+    public Set<String> getNarrowerCourseIdsForCollection(Set<String> domainIds) {
+        Set<String> r = new HashSet<>();
+
+        domainIds.stream().forEach((id) -> {
+            try {
+                r.addAll(getNarrowerDomainIds(id));
+            } catch (IOException ex) {
+                LOGGER.error("Failed querying narrower ids for {}", id, ex);
+            }
+        });
+        return r;
+    }
 }

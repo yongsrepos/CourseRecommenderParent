@@ -21,10 +21,10 @@ package se.uu.it.cs.recsys.persistence.entity;
  */
 
 import java.io.Serializable;
-
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
@@ -51,10 +51,10 @@ public class CourseDomainRelevance implements Serializable {
 	@Column(name = "relevance_level")
 	private Short relevanceLevel;
 	@JoinColumn(name = "course_id", referencedColumnName = "auto_gen_id", insertable = false, updatable = false)
-	@ManyToOne(optional = false)
+	@ManyToOne(fetch= FetchType.EAGER,optional = false)
 	private Course course;
 	@JoinColumn(name = "domain_id", referencedColumnName = "id", insertable = false, updatable = false)
-	@ManyToOne(optional = false)
+	@ManyToOne(fetch= FetchType.EAGER,optional = false)
 	private ComputingDomain computingDomain;
 
 	public CourseDomainRelevance() {

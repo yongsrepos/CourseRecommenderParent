@@ -33,13 +33,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import se.uu.it.cs.recsys.persistence.repository.CourseSelectionNormalizedRepository;
 import se.uu.it.cs.recsys.ruleminer.datastructure.HeaderTableItem;
 import se.uu.it.cs.recsys.ruleminer.datastructure.Item;
@@ -67,16 +64,17 @@ public class FPTreeHeaderTableBuilder {
         Map<Integer, Integer> courseIdAndCount = new HashMap<>();
 
         int studentId = 1;
-        final int maxStudentID = this.courseSelectionNormalizedRepository.findMaxCourseSelectionNormalizedPKStudentId();
+        final int maxStudentID = this.courseSelectionNormalizedRepository
+                .findMaxCourseSelectionNormalizedPKStudentId();
         
-        LOGGER.debug("Max studentId: {}", maxStudentID);
+//        LOGGER.debug("Max studentId: {}", maxStudentID);
 
         while (studentId <= maxStudentID) {
 
             Set<Integer> allAttendedCourseIDs = this.courseSelectionNormalizedRepository
                     .findCourseSelectionNormalizedPKNormalizedCourseIdByCourseSelectionNormalizedPKStudentId(studentId);
 
-            LOGGER.debug("Normalized attended coursed ids: {}, studentId: {}", allAttendedCourseIDs, studentId);
+//            LOGGER.debug("Normalized attended coursed ids: {}, studentId: {}", allAttendedCourseIDs, studentId);
 
             allAttendedCourseIDs.forEach((courseId) -> {
                 if (courseIdAndCount.containsKey(courseId)) {
@@ -178,9 +176,9 @@ public class FPTreeHeaderTableBuilder {
 
         });
 
-        LOGGER.debug("Final built header table: {}",
-                instance.stream()
-                .map(headerItem -> headerItem.getItem()).collect(Collectors.toList()));
+//        LOGGER.debug("Final built header table: {}",
+//                instance.stream()
+//                .map(headerItem -> headerItem.getItem()).collect(Collectors.toList()));
 
         return instance;
     }

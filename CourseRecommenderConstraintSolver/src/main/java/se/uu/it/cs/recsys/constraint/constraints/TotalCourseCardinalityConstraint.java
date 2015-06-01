@@ -29,6 +29,7 @@ import org.jacop.set.constraints.CardAeqX;
 import org.jacop.set.core.SetVar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import se.uu.it.cs.recsys.constraint.api.ConstraintSolverPreference;
 import static se.uu.it.cs.recsys.constraint.constraints.SinglePeriodCourseCardinalityConstraint.MAX_COURSE_AMOUNT_EACH_PERIOD;
 import static se.uu.it.cs.recsys.constraint.constraints.SinglePeriodCourseCardinalityConstraint.MIN_COURSE_AMOUNT_EACH_PERIOD;
 
@@ -38,18 +39,18 @@ import static se.uu.it.cs.recsys.constraint.constraints.SinglePeriodCourseCardin
  */
 public class TotalCourseCardinalityConstraint {
 
-    public static final int MIN_TOTAL_COURSE_AMOUNT = 6;
-    public static final int MAX_TOTAL_COURSE_AMOUNT = 15;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TotalCourseCardinalityConstraint.class);
 
-    public static void impose(Store store, SetVar[] periodVars) {
+    public static void impose(Store store, SetVar[] periodVars, int maxCourseAmount) {
         LOGGER.debug("Posting cardinality constraint for all study periods.");
 
         ArrayList<IntVar> cardList = new ArrayList<>();
 
         for (SetVar var : periodVars) {
-            IntVar cardVar = new IntVar(store, MIN_COURSE_AMOUNT_EACH_PERIOD, MAX_COURSE_AMOUNT_EACH_PERIOD);
+            IntVar cardVar = new IntVar(store, 
+                    MIN_COURSE_AMOUNT_EACH_PERIOD, 
+                    MAX_COURSE_AMOUNT_EACH_PERIOD);
 
             CardAeqX cardConstraint = new CardAeqX(var, cardVar);
             store.impose(cardConstraint);
@@ -57,7 +58,9 @@ public class TotalCourseCardinalityConstraint {
             cardList.add(cardVar);
         }
 
-        IntVar totalCard = new IntVar(store, MIN_TOTAL_COURSE_AMOUNT, MAX_TOTAL_COURSE_AMOUNT);
+        IntVar totalCard = new IntVar(store, 
+                ConstraintSolverPreference.MIN_TOTAL_COURSE_AMOUNT_DEFAULT, 
+                maxCourseAmount);
 
         store.impose(new Sum(cardList, totalCard));
     }

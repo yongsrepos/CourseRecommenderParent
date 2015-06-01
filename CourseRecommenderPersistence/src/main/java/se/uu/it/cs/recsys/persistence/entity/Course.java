@@ -1,4 +1,3 @@
-
 package se.uu.it.cs.recsys.persistence.entity;
 
 /*
@@ -20,15 +19,13 @@ package se.uu.it.cs.recsys.persistence.entity;
  * limitations under the License.
  * #L%
  */
-
-
 import java.io.Serializable;
 import java.util.Collection;
-
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -53,15 +50,18 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "Course.findAllDistinctAutoGenId", query = "SELECT DISTINCT(c.autoGenId) FROM Course c"),
     @NamedQuery(name = "Course.findByAutoGenId", query = "SELECT c FROM Course c WHERE c.autoGenId = :autoGenId"),
     @NamedQuery(name = "Course.findByAutoGenIds", query = "SELECT c FROM Course c WHERE c.autoGenId in :autoGenIds"),
-    @NamedQuery(name = "Course.findByCode", query = "SELECT c FROM Course c WHERE c.code = :code"),
+    @NamedQuery(name = "Course.findByCode", query = "SELECT c FROM Course c "
+            + "LEFT JOIN FETCH c.courseDomainRelevanceCollection WHERE c.code = :code"),
     @NamedQuery(name = "Course.findByName", query = "SELECT c FROM Course c WHERE c.name = :name"),
     @NamedQuery(name = "Course.findByLevel", query = "SELECT c FROM Course c WHERE c.level = :level"),
     @NamedQuery(name = "Course.findByCredit", query = "SELECT c FROM Course c WHERE c.credit = :credit"),
     @NamedQuery(name = "Course.findByTaughtYear", query = "SELECT c FROM Course c WHERE c.taughtYear = :taughtYear"),
     @NamedQuery(name = "Course.findByStartPeriod", query = "SELECT c FROM Course c WHERE c.startPeriod = :startPeriod"),
     @NamedQuery(name = "Course.findByEndPeriod", query = "SELECT c FROM Course c WHERE c.endPeriod = :endPeriod"),
-    @NamedQuery(name = "Course.findByTaughtYearAndStartPeriod", query = "SELECT c FROM Course c WHERE c.taughtYear = :taughtYear and c.startPeriod = :startPeriod"),
-    @NamedQuery(name = "Course.findByCodeAndTaughtYearAndStartPeriod", query = "SELECT c FROM Course c WHERE c.code = :code and c.taughtYear = :taughtYear and c.startPeriod = :startPeriod")})
+    @NamedQuery(name = "Course.findByTaughtYearAndStartPeriod", query = "SELECT c FROM Course c "
+            + "WHERE c.taughtYear = :taughtYear and c.startPeriod = :startPeriod"),
+    @NamedQuery(name = "Course.findByCodeAndTaughtYearAndStartPeriod", query = "SELECT c FROM Course c "
+            + "WHERE c.code = :code and c.taughtYear = :taughtYear and c.startPeriod = :startPeriod")})
 public class Course implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -80,7 +80,7 @@ public class Course implements Serializable {
     private Short startPeriod;
     @Column(name = "end_period")
     private Short endPeriod;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "course")
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "course")
     private Collection<CourseDomainRelevance> courseDomainRelevanceCollection;
     @JoinColumn(name = "credit", referencedColumnName = "credit")
     @ManyToOne
@@ -191,110 +191,133 @@ public class Course implements Serializable {
         this.courseSelectionOriginalCollection = courseSelectionOriginalCollection;
     }
 
-    
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((autoGenId == null) ? 0 : autoGenId.hashCode());
+        result = prime * result + ((code == null) ? 0 : code.hashCode());
+        result = prime
+                * result
+                + ((courseDomainRelevanceCollection == null) ? 0
+                        : courseDomainRelevanceCollection.hashCode());
+        result = prime
+                * result
+                + ((courseSelectionNormalizedCollection == null) ? 0
+                        : courseSelectionNormalizedCollection.hashCode());
+        result = prime
+                * result
+                + ((courseSelectionOriginalCollection == null) ? 0
+                        : courseSelectionOriginalCollection.hashCode());
+        result = prime * result + ((credit == null) ? 0 : credit.hashCode());
+        result = prime * result
+                + ((endPeriod == null) ? 0 : endPeriod.hashCode());
+        result = prime * result + ((level == null) ? 0 : level.hashCode());
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result
+                + ((startPeriod == null) ? 0 : startPeriod.hashCode());
+        result = prime * result
+                + ((taughtYear == null) ? 0 : taughtYear.hashCode());
+        return result;
+    }
 
     @Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((autoGenId == null) ? 0 : autoGenId.hashCode());
-		result = prime * result + ((code == null) ? 0 : code.hashCode());
-		result = prime
-				* result
-				+ ((courseDomainRelevanceCollection == null) ? 0
-						: courseDomainRelevanceCollection.hashCode());
-		result = prime
-				* result
-				+ ((courseSelectionNormalizedCollection == null) ? 0
-						: courseSelectionNormalizedCollection.hashCode());
-		result = prime
-				* result
-				+ ((courseSelectionOriginalCollection == null) ? 0
-						: courseSelectionOriginalCollection.hashCode());
-		result = prime * result + ((credit == null) ? 0 : credit.hashCode());
-		result = prime * result
-				+ ((endPeriod == null) ? 0 : endPeriod.hashCode());
-		result = prime * result + ((level == null) ? 0 : level.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result
-				+ ((startPeriod == null) ? 0 : startPeriod.hashCode());
-		result = prime * result
-				+ ((taughtYear == null) ? 0 : taughtYear.hashCode());
-		return result;
-	}
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Course other = (Course) obj;
+        if (autoGenId == null) {
+            if (other.autoGenId != null) {
+                return false;
+            }
+        } else if (!autoGenId.equals(other.autoGenId)) {
+            return false;
+        }
+        if (code == null) {
+            if (other.code != null) {
+                return false;
+            }
+        } else if (!code.equals(other.code)) {
+            return false;
+        }
+        if (courseDomainRelevanceCollection == null) {
+            if (other.courseDomainRelevanceCollection != null) {
+                return false;
+            }
+        } else if (!courseDomainRelevanceCollection
+                .equals(other.courseDomainRelevanceCollection)) {
+            return false;
+        }
+        if (courseSelectionNormalizedCollection == null) {
+            if (other.courseSelectionNormalizedCollection != null) {
+                return false;
+            }
+        } else if (!courseSelectionNormalizedCollection
+                .equals(other.courseSelectionNormalizedCollection)) {
+            return false;
+        }
+        if (courseSelectionOriginalCollection == null) {
+            if (other.courseSelectionOriginalCollection != null) {
+                return false;
+            }
+        } else if (!courseSelectionOriginalCollection
+                .equals(other.courseSelectionOriginalCollection)) {
+            return false;
+        }
+        if (credit == null) {
+            if (other.credit != null) {
+                return false;
+            }
+        } else if (!credit.equals(other.credit)) {
+            return false;
+        }
+        if (endPeriod == null) {
+            if (other.endPeriod != null) {
+                return false;
+            }
+        } else if (!endPeriod.equals(other.endPeriod)) {
+            return false;
+        }
+        if (level == null) {
+            if (other.level != null) {
+                return false;
+            }
+        } else if (!level.equals(other.level)) {
+            return false;
+        }
+        if (name == null) {
+            if (other.name != null) {
+                return false;
+            }
+        } else if (!name.equals(other.name)) {
+            return false;
+        }
+        if (startPeriod == null) {
+            if (other.startPeriod != null) {
+                return false;
+            }
+        } else if (!startPeriod.equals(other.startPeriod)) {
+            return false;
+        }
+        if (taughtYear == null) {
+            if (other.taughtYear != null) {
+                return false;
+            }
+        } else if (!taughtYear.equals(other.taughtYear)) {
+            return false;
+        }
+        return true;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Course other = (Course) obj;
-		if (autoGenId == null) {
-			if (other.autoGenId != null)
-				return false;
-		} else if (!autoGenId.equals(other.autoGenId))
-			return false;
-		if (code == null) {
-			if (other.code != null)
-				return false;
-		} else if (!code.equals(other.code))
-			return false;
-		if (courseDomainRelevanceCollection == null) {
-			if (other.courseDomainRelevanceCollection != null)
-				return false;
-		} else if (!courseDomainRelevanceCollection
-				.equals(other.courseDomainRelevanceCollection))
-			return false;
-		if (courseSelectionNormalizedCollection == null) {
-			if (other.courseSelectionNormalizedCollection != null)
-				return false;
-		} else if (!courseSelectionNormalizedCollection
-				.equals(other.courseSelectionNormalizedCollection))
-			return false;
-		if (courseSelectionOriginalCollection == null) {
-			if (other.courseSelectionOriginalCollection != null)
-				return false;
-		} else if (!courseSelectionOriginalCollection
-				.equals(other.courseSelectionOriginalCollection))
-			return false;
-		if (credit == null) {
-			if (other.credit != null)
-				return false;
-		} else if (!credit.equals(other.credit))
-			return false;
-		if (endPeriod == null) {
-			if (other.endPeriod != null)
-				return false;
-		} else if (!endPeriod.equals(other.endPeriod))
-			return false;
-		if (level == null) {
-			if (other.level != null)
-				return false;
-		} else if (!level.equals(other.level))
-			return false;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		if (startPeriod == null) {
-			if (other.startPeriod != null)
-				return false;
-		} else if (!startPeriod.equals(other.startPeriod))
-			return false;
-		if (taughtYear == null) {
-			if (other.taughtYear != null)
-				return false;
-		} else if (!taughtYear.equals(other.taughtYear))
-			return false;
-		return true;
-	}
-
-	@Override
+    @Override
     public String toString() {
         return "se.uu.it.cs.recsys.persistence.entity.Course[ autoGenId=" + autoGenId + " ]";
     }

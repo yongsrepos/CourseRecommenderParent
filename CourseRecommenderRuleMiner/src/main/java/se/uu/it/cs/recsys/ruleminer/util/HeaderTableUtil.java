@@ -61,10 +61,10 @@ public class HeaderTableUtil {
             }
         }
 
-        if (result == null) {
-            LOGGER.debug("No match item found for id: {} in table: {}", id,
-                    headerTable.stream().map(headItem -> headItem.getItem()).collect(Collectors.toList()));
-        }
+//        if (result == null) {
+//            LOGGER.debug("No match item found for id: {} in table: {}", id,
+//                    headerTable.stream().map(headItem -> headItem.getItem()).collect(Collectors.toList()));
+//        }
 
         return result;
     }

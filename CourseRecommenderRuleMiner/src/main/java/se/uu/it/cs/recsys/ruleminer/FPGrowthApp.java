@@ -63,7 +63,7 @@ public class FPGrowthApp {
                 return;
             }
 
-            Map<Set<Integer>, Integer> patterns = app.ruleMiner.getAllFrequentPattern(tree);
+            Map<Set<Integer>, Integer> patterns = app.ruleMiner.getAllFrequentPattern(tree, minSupport);
 
             patterns.entrySet()
                     .stream()

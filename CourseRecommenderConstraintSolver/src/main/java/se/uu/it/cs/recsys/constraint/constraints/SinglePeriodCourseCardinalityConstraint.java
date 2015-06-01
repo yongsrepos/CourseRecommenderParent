@@ -34,16 +34,16 @@ public class SinglePeriodCourseCardinalityConstraint {
     public static final int MIN_COURSE_AMOUNT_EACH_PERIOD = 1;
     public static final int MAX_COURSE_AMOUNT_EACH_PERIOD = 3;
 
-    public static final int MIN_TOTAL_COURSE_AMOUNT = 6;
-    public static final int MAX_TOTAL_COURSE_AMOUNT = 15;
-
     private static final Logger LOGGER = LoggerFactory.getLogger(SinglePeriodCourseCardinalityConstraint.class);
 
     public static void impose(Store store, SetVar[] periodVars) {
         LOGGER.debug("Posting cardinality constraint for each single study period.");
 
         for (SetVar var : periodVars) {
-            CardA cardConstraint = new CardA(var, MIN_COURSE_AMOUNT_EACH_PERIOD, MAX_COURSE_AMOUNT_EACH_PERIOD);
+            CardA cardConstraint = new CardA(var, 
+                    MIN_COURSE_AMOUNT_EACH_PERIOD,
+                    MAX_COURSE_AMOUNT_EACH_PERIOD);
+            
             store.impose(cardConstraint);
         }
     }

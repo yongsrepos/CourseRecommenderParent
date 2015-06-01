@@ -20,7 +20,6 @@ package se.uu.it.cs.recsys.dataloader;
  * #L%
  */
 import java.io.IOException;
-import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,35 +48,35 @@ import se.uu.it.cs.recsys.semantic.config.ComputingDomainReasonerSpringConfig;
  */
 @Component
 public class RecsysDataLoaderApp {
-
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(RecsysDataLoaderApp.class);
-
+    
     @Autowired
     private SupportedCourseCreditRepository supportedCourseCreditRepository;
-
+    
     @Autowired
     private SupportedCourseLevelRepository supportedCourseLevelRepository;
-
+    
     @Autowired
     private FuturePlannedCourseLoader futurePlannedCourseLoader;
-
+    
     @Autowired
     private PreviousYearsCourseLoader previousYearsCourseLoader;
-
+    
     @Autowired
     private CourseNormalizationRefLoader courseNormalizationRefLoader;
-
+    
     @Autowired
     private ComputingDomainTaxonomyLoader computingDomainTaxonomyLoader;
-
+    
     @Autowired
     private OriginalCourseSelectionLoader originalCourseSelectionLoader;
-
+    
     @Autowired
     private NormalizedCourseSelectionLoader normalizedCourseSelectionLoader;
-
+    
     public static void main(String[] args) {
-
+        
         try (AnnotationConfigApplicationContext ctx
                 = new AnnotationConfigApplicationContext(RecsysDataLoaderSpringConfig.class,
                         PersistenceSpringConfig.class,
@@ -88,84 +87,84 @@ public class RecsysDataLoaderApp {
             LOGGER.error("Failed loading data!", ex);
         }
     }
-
+    
     public void loadData() throws IOException {
-
+        
         try {
             loadSupportedCourseCredit();
-
+            
             loadSupportedCourseLevel();
-
+            
             loadComputingDomainTaxonomyData();
-
+            
             loadPreviousTaughtCourses();
-
+            
             loadFuturePlannedCourse();
-
+            
             loadOriginalCourseSelectionData();
-
+            
             loadCourseNormalizationRefData();
-
+            
             loadNormalizedCourseSelectionData();
-
+            
         } catch (DatabaseAccessException | DataSourceFileAccessException ex) {
-            java.util.logging.Logger.getLogger(RecsysDataLoaderApp.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.error("Failed loading data", ex);
         }
     }
-
+    
     private void loadSupportedCourseCredit() {
         LOGGER.info("Loading supported course credit!");
-
+        
         for (CourseCredit credit : CourseCredit.values()) {
             this.supportedCourseCreditRepository.save(new SupportedCourseCredit((double) credit.getCredit()));
         }
     }
-
+    
     private void loadSupportedCourseLevel() {
         LOGGER.info("Loading supported course level!");
-
+        
         for (CourseLevel level : CourseLevel.values()) {
             this.supportedCourseLevelRepository.save(new SupportedCourseLevel(level.getDBString()));
         }
-
+        
     }
-
+    
     private void loadFuturePlannedCourse() throws DataSourceFileAccessException, DatabaseAccessException {
         LOGGER.info("Loading planned courses for coming academic year!");
-
+        
         this.futurePlannedCourseLoader.loadToDB();
     }
-
+    
     private void loadPreviousTaughtCourses() throws DatabaseAccessException, DataSourceFileAccessException {
         LOGGER.info("Loading previously taught courses!");
-
+        
         this.previousYearsCourseLoader.loadToDB();
     }
-
+    
     private void loadComputingDomainTaxonomyData() throws DatabaseAccessException, DataSourceFileAccessException {
         LOGGER.info("Loading computing domain taxonomy data!");
-
+        
         this.computingDomainTaxonomyLoader.loadToDB();
     }
-
+    
     private void loadOriginalCourseSelectionData() throws DataSourceFileAccessException {
         LOGGER.info("Loading course selection data from previous years!");
-
+        
         this.originalCourseSelectionLoader.loadToDB();
-
+        
     }
-
+    
     private void loadNormalizedCourseSelectionData() throws DatabaseAccessException, DataSourceFileAccessException {
         LOGGER.info("Loading normalized course selection data from previous years!");
-
+        
         this.normalizedCourseSelectionLoader.loadToDB();
-
+        
     }
-
+    
     private void loadCourseNormalizationRefData() throws DataSourceFileAccessException {
         LOGGER.info("Loading course normalization reference data!");
-
+        
         this.courseNormalizationRefLoader.loadToDB();
     }
-
+    
 }

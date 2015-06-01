@@ -22,7 +22,9 @@ package se.uu.it.cs.recsys.persistence.repository;
  */
 
 
+import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.query.Param;
 import se.uu.it.cs.recsys.persistence.entity.CourseDomainRelevance;
 import se.uu.it.cs.recsys.persistence.entity.CourseDomainRelevancePK;
 
@@ -31,5 +33,8 @@ import se.uu.it.cs.recsys.persistence.entity.CourseDomainRelevancePK;
  * @author Yong Huang &lt;yong.e.huang@gmail.com&gt;
  */
 public interface CourseDomainRelevanceRepository extends JpaRepository<CourseDomainRelevance, CourseDomainRelevancePK>{
+    
+    
+    public Set<CourseDomainRelevance> findByDomainId(@Param("domainId") String domainId);
     
 }

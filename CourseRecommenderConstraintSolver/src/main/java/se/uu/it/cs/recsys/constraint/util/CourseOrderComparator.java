@@ -1,9 +1,8 @@
-
-package se.uu.it.cs.recsys.persistence.repository;
+package se.uu.it.cs.recsys.constraint.util;
 
 /*
  * #%L
- * CourseRecommenderPersistence
+ * CourseRecommenderConstraintSolver
  * %%
  * Copyright (C) 2015 Yong Huang  <yong.e.huang@gmail.com >
  * %%
@@ -22,16 +21,22 @@ package se.uu.it.cs.recsys.persistence.repository;
  */
 
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.query.Param;
-import se.uu.it.cs.recsys.persistence.entity.ComputingDomain;
+import java.util.Comparator;
+import se.uu.it.cs.recsys.api.type.Course;
 
 /**
  *
- * @author Yong Huang &lt;yong.e.huang@gmail.com&gt;
+ * @author Yong Huang &lt;yong.e.huang@gmail.com>&gt;
  */
-public interface ComputingDomainRepository extends JpaRepository<ComputingDomain, String> {
-    
-     public ComputingDomain findById(@Param("id") String id);
+public class CourseOrderComparator implements Comparator<Course> {
+
+    @Override
+    public int compare(Course o1, Course o2) {
+        if (Integer.compare(o1.getTaughtYear(), o2.getTaughtYear()) != 0) {
+            return Integer.compare(o1.getTaughtYear(), o2.getTaughtYear());
+        } else {
+            return Integer.compare(o1.getStartPeriod(), o2.getStartPeriod());
+        }
+    }
 
 }

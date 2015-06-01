@@ -64,13 +64,7 @@ public class PersistenceSpringConfig {
         poolProperties.setLogAbandoned(true);
 
         DataSource tomcatDS = new org.apache.tomcat.jdbc.pool.DataSource(poolProperties);
-
-//        DriverManagerDataSource ds = new DriverManagerDataSource();
-//        tomcatDS.setDriverClassName("com.mysql.jdbc.Driver");
-//        ds.setUsername("root");
-//        ds.setPassword("password");
-//        ds.setUrl();
-//        
+        
         return tomcatDS;
     }
 

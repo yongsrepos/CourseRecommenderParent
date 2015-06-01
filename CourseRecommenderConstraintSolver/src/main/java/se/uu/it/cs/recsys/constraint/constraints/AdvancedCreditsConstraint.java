@@ -31,9 +31,9 @@ import org.jacop.set.core.SetVar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.uu.it.cs.recsys.api.type.CourseCredit;
-import se.uu.it.cs.recsys.constraint.api.AdvancedCreditsConstraintConfig;
-import se.uu.it.cs.recsys.constraint.api.Solver;
+import se.uu.it.cs.recsys.constraint.api.ConstraintSolverPreference;
 import static se.uu.it.cs.recsys.constraint.constraints.AbstractCreditsConstraint.getScaledCredits;
+import se.uu.it.cs.recsys.constraint.solver.Solver;
 import se.uu.it.cs.recsys.constraint.util.Util;
 
 /**
@@ -47,7 +47,7 @@ public class AdvancedCreditsConstraint extends AbstractCreditsConstraint {
     public static void impose(Store store,
             SetVar allPeriodsUnion,
             Map<CourseCredit, Set<Integer>> creditToInterestedAdvancedCourseIds,
-            AdvancedCreditsConstraintConfig config) {
+            Double maxAdvancedCredits) {
 
         LOGGER.debug("Posting constraints on total advanced credits!");
 
@@ -64,8 +64,8 @@ public class AdvancedCreditsConstraint extends AbstractCreditsConstraint {
         });
 
         IntVar totalAdvancedCredits = new IntVar(store,
-                config.getMinAdvancedCredits() * Solver.CREDIT_NORMALIZATION_SCALE,
-                config.getMaxAdvancedCredits() * Solver.CREDIT_NORMALIZATION_SCALE);
+                (int)(ConstraintSolverPreference.MIN_ADVANCED_CREDIT * Solver.CREDIT_NORMALIZATION_SCALE),
+                (int)(maxAdvancedCredits * Solver.CREDIT_NORMALIZATION_SCALE));
 
         store.impose(new Sum(creditVarListForEachCreditType, totalAdvancedCredits));
     }

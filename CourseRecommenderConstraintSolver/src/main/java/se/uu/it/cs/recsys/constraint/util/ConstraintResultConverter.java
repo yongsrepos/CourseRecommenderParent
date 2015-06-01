@@ -19,8 +19,10 @@ package se.uu.it.cs.recsys.constraint.util;
  * limitations under the License.
  * #L%
  */
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -34,6 +36,7 @@ import org.springframework.stereotype.Service;
 import se.uu.it.cs.recsys.api.type.Course;
 import se.uu.it.cs.recsys.api.type.CourseLevel;
 import se.uu.it.cs.recsys.persistence.repository.CourseRepository;
+import se.uu.it.cs.recsys.persistence.util.CourseConverter;
 
 /**
  *
@@ -102,7 +105,43 @@ public class ConstraintResultConverter {
         return result;
     }
 
-    public Map<Integer, Set<Course>> convert(Domain[] solution) {
+    public List<Course> convert(Domain[] solution) {
+        List<Course> result = new ArrayList<>();
+
+        if (solution == null || solution.length == 0) {
+            LOGGER.debug("Input result is empty!");
+            return result;
+        }
+
+        for (Domain var : solution) {
+            LOGGER.debug("Solution domain to be converted: " + var.toString());
+
+            SetDomainValueEnumeration ve = (SetDomainValueEnumeration) (var.valueEnumeration());
+
+            Set<Integer> courseIds = new HashSet<>();
+
+            while (ve.hasMoreElements()) {
+                int[] elemArray = ve.nextSetElement().toIntArray();
+
+                for (int elem : elemArray) {
+                    courseIds.add(elem);
+                }
+            }
+
+            Set<se.uu.it.cs.recsys.persistence.entity.Course> courseEntities
+                    = this.courseRepository.findByAutoGenIds(courseIds);
+
+            Set<Course> courseInfoSet = courseEntities.stream()
+                    .map(course -> CourseConverter.convert(course))
+                    .collect(Collectors.toSet());
+
+            result.addAll(courseInfoSet);
+        }
+
+        return result;
+    }
+
+    public Map<Integer, Set<Course>> convertToMap(Domain[] solution) {
         Map<Integer, Set<Course>> result = new HashMap<>();
 
         if (solution == null || solution.length == 0) {

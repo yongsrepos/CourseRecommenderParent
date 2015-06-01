@@ -1,4 +1,3 @@
-
 package se.uu.it.cs.recsys.semantic.config;
 
 /*
@@ -20,8 +19,14 @@ package se.uu.it.cs.recsys.semantic.config;
  * limitations under the License.
  * #L%
  */
-
-
+import com.google.common.cache.CacheBuilder;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.guava.GuavaCache;
+import org.springframework.cache.support.SimpleCacheManager;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
@@ -32,5 +37,20 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ComponentScan(basePackages = {"se.uu.it.cs.recsys.semantic"})
 public class ComputingDomainReasonerSpringConfig {
-    
+
+    @Bean
+    public CacheManager cacheManager() {
+        SimpleCacheManager cacheManager = new SimpleCacheManager();
+
+        GuavaCache fpTreeCache = new GuavaCache("ComputingDomainCache",
+                CacheBuilder.
+                newBuilder().
+                expireAfterWrite(1, TimeUnit.DAYS).
+                maximumSize(100).build());
+
+        cacheManager.setCaches(Stream.of(fpTreeCache).collect(Collectors.toList()));
+
+        return cacheManager;
+    }
+
 }

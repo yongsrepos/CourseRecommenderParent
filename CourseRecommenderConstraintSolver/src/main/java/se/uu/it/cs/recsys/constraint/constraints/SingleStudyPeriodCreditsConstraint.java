@@ -32,8 +32,9 @@ import org.jacop.set.core.SetVar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.uu.it.cs.recsys.api.type.CourseCredit;
-import se.uu.it.cs.recsys.constraint.api.Solver;
+import se.uu.it.cs.recsys.constraint.api.ConstraintSolverPreference;
 import static se.uu.it.cs.recsys.constraint.constraints.AbstractCreditsConstraint.getScaledCredits;
+import se.uu.it.cs.recsys.constraint.solver.Solver;
 import se.uu.it.cs.recsys.constraint.util.Util;
 
 /**
@@ -41,9 +42,6 @@ import se.uu.it.cs.recsys.constraint.util.Util;
  * @author Yong Huang &lt;yong.e.huang@gmail.com>&gt;
  */
 public class SingleStudyPeriodCreditsConstraint extends AbstractCreditsConstraint {
-
-    public static final int MIN_PERIOD_CREDIT = 10;
-    public static final int MAX_PERIOD_CREDIT = 30;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SingleStudyPeriodCreditsConstraint.class);
 
@@ -59,7 +57,8 @@ public class SingleStudyPeriodCreditsConstraint extends AbstractCreditsConstrain
                 });
     }
 
-    private static void imposeForSinglePeriod(Store store, SetVar singlePeriodVar, Map<CourseCredit, Set<Integer>> creditToInterestedCourseIds) {
+    private static void imposeForSinglePeriod(Store store, SetVar singlePeriodVar, 
+            Map<CourseCredit, Set<Integer>> creditToInterestedCourseIds) {
 
         ArrayList<IntVar> creditVarListForEachCreditType = new ArrayList<>();
 
@@ -74,8 +73,8 @@ public class SingleStudyPeriodCreditsConstraint extends AbstractCreditsConstrain
         });
 
         IntVar totalCredits = new IntVar(store,
-                MIN_PERIOD_CREDIT * Solver.CREDIT_NORMALIZATION_SCALE,
-                MAX_PERIOD_CREDIT * Solver.CREDIT_NORMALIZATION_SCALE);
+                (int)(ConstraintSolverPreference.MIN_PERIOD_CREDIT * Solver.CREDIT_NORMALIZATION_SCALE),
+                (int)(ConstraintSolverPreference.MAX_PERIOD_CREDIT * Solver.CREDIT_NORMALIZATION_SCALE));
 
         store.impose(new Sum(creditVarListForEachCreditType, totalCredits));
 
