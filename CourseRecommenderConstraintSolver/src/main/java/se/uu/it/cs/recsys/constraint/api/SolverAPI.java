@@ -19,6 +19,7 @@ package se.uu.it.cs.recsys.constraint.api;
  * limitations under the License.
  * #L%
  */
+import java.text.NumberFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,7 +58,17 @@ public class SolverAPI {
 //                = new AnnotationConfigApplicationContext(ConstraintSolverSpringConfig.class)) {
             
 
-            Set<List<se.uu.it.cs.recsys.api.type.Course>> solutions = this.solver.getSolution(pref);
+               long startTime = System.currentTimeMillis();
+
+        LOGGER.info("Starting solving CSP problem  ... ");
+
+        Set<List<se.uu.it.cs.recsys.api.type.Course>> solutions = this.solver.getSolution(pref);
+
+        long elapsed = System.currentTimeMillis() - startTime;
+        
+        LOGGER.info("CSP finished. Elapsed time: {} ms", 
+                NumberFormat.getInstance().format(elapsed));
+            
             
             printSolution(solutions);
             

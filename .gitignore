@@ -48,3 +48,12 @@
 /CourseRecommenderDomainReasoner/target/
 /CourseRecommenderDataLoader/target/
 /CourseRecommenderRuleMiner/target/
+*.project
+*.prefs
+*.classpath
+*.component
+CourseRecommenderPersistence/.settings/org.eclipse.wst.common.project.facet.core.prefs.xml
+CourseRecommenderPersistence/.settings/org.eclipse.wst.common.project.facet.core.xml
+CourseRecommenderAPI/.settings/org.eclipse.wst.common.project.facet.core.xml
+CourseRecommenderDataLoader/nbactions.xml
+/CourseRecommenderSpringMVC/target/

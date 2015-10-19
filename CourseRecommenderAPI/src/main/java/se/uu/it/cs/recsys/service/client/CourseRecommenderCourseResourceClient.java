@@ -25,7 +25,8 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import se.uu.it.cs.recsys.api.type.Course;
 
 /**
@@ -33,24 +34,29 @@ import se.uu.it.cs.recsys.api.type.Course;
  * @author Yong Huang &lt;yong.e.huang@gmail.com>&gt;
  */
 public class CourseRecommenderCourseResourceClient {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CourseRecommenderCourseResourceClient.class);
 
     public static void main(String[] args) {
+        CourseRecommenderCourseResourceClient theClient = new CourseRecommenderCourseResourceClient();
+        
+        Set<Course> courses = theClient.getCourseByYearAndPeriod(2015, 1);
+        
+        courses.forEach(course->LOGGER.info("{}", course));
+    }
+    
+    public Set<Course> getCourseByYearAndPeriod(Integer year, Integer period){
         Client client = ClientBuilder.newClient();
 
-        WebTarget target = client.target("http://localhost:8080/CourseRecommenderService").path("/resources/courses/year/").path("-2015").path("/period/start/1");
+        WebTarget target = client.target("http://localhost:8080/CourseRecommenderService")
+                .path("/resources/courses/year/")
+                .path(year.toString())
+                .path("/period/start/" + period.toString());
 
         registerJsonProviderTo(target);
 
-        GenericType<Set<Course>> gt = new GenericType<Set<Course>>() {
-        };
+        GenericType<Set<Course>> gt = new GenericType<Set<Course>>() {};
 
-        Response resp = target.request(MediaType.APPLICATION_JSON_TYPE).get();
-
-        System.out.println(resp);
-
-        Set<Course> courses = target.request(MediaType.APPLICATION_JSON).get(gt);
-
-        courses.forEach(course -> System.out.println(course));
+        return target.request(MediaType.APPLICATION_JSON).get(gt);
     }
 
     private static void registerJsonProviderTo(WebTarget target) {

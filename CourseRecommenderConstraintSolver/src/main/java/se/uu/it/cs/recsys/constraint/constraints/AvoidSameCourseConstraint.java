@@ -46,7 +46,7 @@ public class AvoidSameCourseConstraint {
      * @param idSetForSameCourse 
      */
     public static void impose(Store store, SetVar unionVar, Set<Set<Integer>> idSetForSameCourse) {
-        LOGGER.info("Posting constraints to avoid seleting same course!");
+        LOGGER.debug("Posting constraints to avoid seleting same course!");
         
         final int minUnionVarCard = 1;
         store.impose(new CardA(unionVar, minUnionVarCard, unionVar.dom().lub().getSize()));
