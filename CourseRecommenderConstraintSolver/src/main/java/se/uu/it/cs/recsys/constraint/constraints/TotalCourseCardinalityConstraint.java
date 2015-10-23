@@ -30,8 +30,6 @@ import org.jacop.set.core.SetVar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.uu.it.cs.recsys.constraint.api.ConstraintSolverPreference;
-import static se.uu.it.cs.recsys.constraint.constraints.SinglePeriodCourseCardinalityConstraint.MAX_COURSE_AMOUNT_EACH_PERIOD;
-import static se.uu.it.cs.recsys.constraint.constraints.SinglePeriodCourseCardinalityConstraint.MIN_COURSE_AMOUNT_EACH_PERIOD;
 
 /**
  *
@@ -49,8 +47,8 @@ public class TotalCourseCardinalityConstraint {
 
         for (SetVar var : periodVars) {
             IntVar cardVar = new IntVar(store, 
-                    MIN_COURSE_AMOUNT_EACH_PERIOD, 
-                    MAX_COURSE_AMOUNT_EACH_PERIOD);
+                    ConstraintSolverPreference.MIN_COURSE_AMOUNT_EACH_PERIOD, 
+                    ConstraintSolverPreference.MAX_COURSE_AMOUNT_EACH_PERIOD);
 
             CardAeqX cardConstraint = new CardAeqX(var, cardVar);
             store.impose(cardConstraint);

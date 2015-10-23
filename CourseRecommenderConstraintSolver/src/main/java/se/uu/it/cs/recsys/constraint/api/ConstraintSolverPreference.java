@@ -38,6 +38,9 @@ public class ConstraintSolverPreference {
     public static final Double MAX_ADVANCED_CREDIT_DEFAULT = ConstraintSolverPreference.MAX_TOTAL_CREDIT_DEFAULT;
 
     public static final int RECOMMENDATION_AMOUNT_DEFAULT = 3;
+    
+    public static final int MIN_COURSE_AMOUNT_EACH_PERIOD = 1;
+    public static final int MAX_COURSE_AMOUNT_EACH_PERIOD = 3;
 
     public static final Double MIN_PERIOD_CREDIT = 10.0;
     public static final Double MAX_PERIOD_CREDIT = 30.0;

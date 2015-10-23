@@ -24,15 +24,13 @@ import org.jacop.set.constraints.CardA;
 import org.jacop.set.core.SetVar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import se.uu.it.cs.recsys.constraint.api.ConstraintSolverPreference;
 
 /**
  *
  * @author Yong Huang &lt;yong.e.huang@gmail.com>&gt;
  */
 public class SinglePeriodCourseCardinalityConstraint {
-
-    public static final int MIN_COURSE_AMOUNT_EACH_PERIOD = 1;
-    public static final int MAX_COURSE_AMOUNT_EACH_PERIOD = 3;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SinglePeriodCourseCardinalityConstraint.class);
 
@@ -41,8 +39,8 @@ public class SinglePeriodCourseCardinalityConstraint {
 
         for (SetVar var : periodVars) {
             CardA cardConstraint = new CardA(var, 
-                    MIN_COURSE_AMOUNT_EACH_PERIOD,
-                    MAX_COURSE_AMOUNT_EACH_PERIOD);
+                    ConstraintSolverPreference.MIN_COURSE_AMOUNT_EACH_PERIOD,
+                    ConstraintSolverPreference.MAX_COURSE_AMOUNT_EACH_PERIOD);
             
             store.impose(cardConstraint);
         }
