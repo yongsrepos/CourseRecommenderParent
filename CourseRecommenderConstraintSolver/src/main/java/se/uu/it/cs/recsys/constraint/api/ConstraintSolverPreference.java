@@ -31,7 +31,7 @@ import se.uu.it.cs.recsys.api.type.CourseSchedule;
  */
 public class ConstraintSolverPreference {
 
-    public static final Double MAX_TOTAL_CREDIT_DEFAULT = 120.0;
+    public static final Double MAX_TOTAL_CREDIT_DEFAULT = 95.0;
     public static final Double MIN_TOTAL_CREDIT = 90.0;
 
     public static final Double MIN_ADVANCED_CREDIT = 60.0;
@@ -43,10 +43,12 @@ public class ConstraintSolverPreference {
     public static final int MAX_COURSE_AMOUNT_EACH_PERIOD = 3;
 
     public static final Double MIN_PERIOD_CREDIT = 10.0;
-    public static final Double MAX_PERIOD_CREDIT = 30.0;
+    public static final Double MAX_PERIOD_CREDIT = 20.0;
 
-    public static final int MAX_TOTAL_COURSE_AMOUNT_DEFAULT = 15;
-    public static final int MIN_TOTAL_COURSE_AMOUNT_DEFAULT = 6;
+    // e.g. all from 5 pts courses
+    public static final int MAX_TOTAL_COURSE_AMOUNT_DEFAULT = 18;
+    // e.g. now does not cover 30 pts single course for one semester; average course credit is around 6
+    public static final int MIN_TOTAL_COURSE_AMOUNT_DEFAULT = 15;
 
     private Set<Integer> interestedCourseIdCollection;
 
