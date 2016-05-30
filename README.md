@@ -6,4 +6,4 @@ It implements a course selection recommendation service based on input preferenc
 
 The data model is based on Uppsala University's Computer Science Master programme education plan.
 
-Refer to the architecture overview pdf for dependency relationship and technology stack.
+Refer to the architecture overview diagram(under docs folder) for dependency relationship and technology stack.
